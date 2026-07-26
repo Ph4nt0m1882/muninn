@@ -7,7 +7,7 @@ import 'package:munnin/src/rust/api/settings.dart';
 import 'package:munnin/core/theme/theme.dart';
 import 'package:munnin/features/navigation/navigation.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:munnin/src/rust/api/simple.dart';
+import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/search.dart' as rust_search;
 import 'package:munnin/features/settings/settings.dart';
 import 'package:munnin/features/editor/editor.dart';
@@ -141,6 +141,21 @@ class _MunninAppState extends State<MunninApp> {
         description: 'Récupérer la dernière version du fichier welcome.md',
         icon: Icons.download,
         execute: _pullWelcomeFile,
+      ),
+    );
+
+    cmdManager.register(
+      AppCommand(
+        id: 'wiki.settings',
+        title: 'Paramètres du Wiki',
+        description: 'Ouvrir les paramètres du wiki actuel',
+        icon: Icons.settings_applications,
+        execute: () {
+          if (_currentWikiPath != null) {
+            final crowPath = '$_currentWikiPath${Platform.pathSeparator}.crow';
+            EditorManager.instance.openFile(crowPath);
+          }
+        },
       ),
     );
 
@@ -368,7 +383,8 @@ class _MunninAppState extends State<MunninApp> {
     if (parentPath == null) return;
 
     try {
-      final newWikiPath = initWiki(parentPath: parentPath, name: name.trim());
+      final newWikiPath = '$parentPath${Platform.pathSeparator}${name.trim()}';
+      await rust_fs.initWiki(rootPath: newWikiPath, title: name.trim());
 
       // --- Génération de la documentation / tutoriel par défaut ---
       final docFile = File('$newWikiPath${Platform.pathSeparator}welcome.md');
@@ -515,13 +531,14 @@ class _MunninAppState extends State<MunninApp> {
     EditorManager.instance.wikiRoot = path;
     addRecentWiki(wikiPath: path);
 
+    // Initialise les paramètres du wiki
+    SettingsManager.instance.loadSettings(path);
+
     // Initialise la base de données de recherche pour ce wiki
     try {
       rust_search.initSearchDb(wikiRoot: path);
     } catch (e) {
-      if (kDebugMode) {
-        print("Erreur lors de l'initialisation de la DB de recherche : $e");
-      }
+      debugPrint("Erreur lors de l'initialisation de la base de données: $e");
     }
 
     _loadInitialSettings(); // Rafraîchit l'historique

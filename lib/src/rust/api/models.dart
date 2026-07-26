@@ -6,7 +6,65 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+
+class CrowFile {
+  final CrowMetadata metadata;
+  final String settings;
+  final String modules;
+
+  const CrowFile({
+    required this.metadata,
+    required this.settings,
+    required this.modules,
+  });
+
+  @override
+  int get hashCode => metadata.hashCode ^ settings.hashCode ^ modules.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CrowFile &&
+          runtimeType == other.runtimeType &&
+          metadata == other.metadata &&
+          settings == other.settings &&
+          modules == other.modules;
+}
+
+class CrowMetadata {
+  final String title;
+  final String version;
+  final PlatformInt64? createdAt;
+  final PlatformInt64? updatedAt;
+
+  const CrowMetadata({
+    required this.title,
+    required this.version,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  static Future<CrowMetadata> default_() =>
+      RustLib.instance.api.crateApiModelsCrowMetadataDefault();
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      version.hashCode ^
+      createdAt.hashCode ^
+      updatedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CrowMetadata &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          version == other.version &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt;
+}
 
 class Page {
   final String path;
@@ -146,31 +204,4 @@ class TreeNode {
           path == other.path &&
           isDirectory == other.isDirectory &&
           children == other.children;
-}
-
-class WikiAnchor {
-  final String title;
-  final String version;
-  final PlatformInt64? createdAt;
-
-  const WikiAnchor({
-    required this.title,
-    required this.version,
-    this.createdAt,
-  });
-
-  static Future<WikiAnchor> default_() =>
-      RustLib.instance.api.crateApiModelsWikiAnchorDefault();
-
-  @override
-  int get hashCode => title.hashCode ^ version.hashCode ^ createdAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WikiAnchor &&
-          runtimeType == other.runtimeType &&
-          title == other.title &&
-          version == other.version &&
-          createdAt == other.createdAt;
 }

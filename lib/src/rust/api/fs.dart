@@ -12,7 +12,15 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<void> initWiki({required String rootPath, required String title}) =>
     RustLib.instance.api.crateApiFsInitWiki(rootPath: rootPath, title: title);
 
-Future<WikiAnchor> readAnchor({required String rootPath}) =>
+Future<void> writeAnchor({
+  required String rootPath,
+  required CrowFile crowFile,
+}) => RustLib.instance.api.crateApiFsWriteAnchor(
+  rootPath: rootPath,
+  crowFile: crowFile,
+);
+
+Future<CrowFile> readAnchor({required String rootPath}) =>
     RustLib.instance.api.crateApiFsReadAnchor(rootPath: rootPath);
 
 Future<TreeNode> scanDirectory({required String rootPath}) =>
@@ -32,4 +40,30 @@ Future<void> writePage({
   rootPath: rootPath,
   relPath: relPath,
   page: page,
+);
+
+Future<void> createFile({required String path}) =>
+    RustLib.instance.api.crateApiFsCreateFile(path: path);
+
+Future<void> createDirectory({required String path}) =>
+    RustLib.instance.api.crateApiFsCreateDirectory(path: path);
+
+Future<void> deleteItem({required String path}) =>
+    RustLib.instance.api.crateApiFsDeleteItem(path: path);
+
+Future<void> renameItem({required String oldPath, required String newPath}) =>
+    RustLib.instance.api.crateApiFsRenameItem(
+      oldPath: oldPath,
+      newPath: newPath,
+    );
+
+Future<String> readFileAsString({required String path}) =>
+    RustLib.instance.api.crateApiFsReadFileAsString(path: path);
+
+Future<void> writeFileAsString({
+  required String path,
+  required String content,
+}) => RustLib.instance.api.crateApiFsWriteFileAsString(
+  path: path,
+  content: content,
 );

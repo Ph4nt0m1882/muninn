@@ -19,7 +19,12 @@ class FlyingCrowAnimation extends StatefulWidget {
   });
 
   /// Utility to show the animation globally
-  static void show(BuildContext context, Offset startPos, Offset endPos, VoidCallback onComplete) {
+  static void show(
+    BuildContext context,
+    Offset startPos,
+    Offset endPos,
+    VoidCallback onComplete,
+  ) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
 
@@ -62,21 +67,21 @@ class _FlyingCrowAnimationState extends State<FlyingCrowAnimation>
     );
 
     _moveController.addListener(() {
-      if (_videoController != null && _moveController.value >= 0.5 && _videoController!.value.playbackSpeed == 1.0) {
+      if (_videoController != null &&
+          _moveController.value >= 0.5 &&
+          _videoController!.value.playbackSpeed == 1.0) {
         _videoController!.setPlaybackSpeed(3.0);
       }
     });
 
     // The crow takes off after 1 second (which is 50% of the 2s animation)
-    _positionAnimation = Tween<Offset>(
-      begin: widget.startPos,
-      end: widget.endPos,
-    ).animate(
-      CurvedAnimation(
-        parent: _moveController,
-        curve: const Interval(0.50, 0.95, curve: Curves.easeInOutSine),
-      ),
-    );
+    _positionAnimation =
+        Tween<Offset>(begin: widget.startPos, end: widget.endPos).animate(
+          CurvedAnimation(
+            parent: _moveController,
+            curve: const Interval(0.50, 0.95, curve: Curves.easeInOutSine),
+          ),
+        );
 
     // Fade out at the very end
     _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
@@ -103,7 +108,7 @@ class _FlyingCrowAnimationState extends State<FlyingCrowAnimation>
     if (!await file.exists()) {
       await file.writeAsBytes(base64Decode(crowVideoBase64));
     }
-    
+
     _videoController = VideoPlayerController.file(file);
     await _videoController!.initialize();
     if (!mounted) return;
@@ -142,19 +147,27 @@ class _FlyingCrowAnimationState extends State<FlyingCrowAnimation>
     // The video is a Black Crow on a White Background.
     // For Light Mode: We want the Black Crow (R=0) to be Opaque (A=255), and White Background (R=255) to be Transparent (A=0).
     // For Dark Mode: We want the White Crow (R=255) to be Opaque (A=255), and Black Background (R=0) to be Transparent (A=0).
-    
+
     final ColorFilter colorFilter = isDark
         ? const ColorFilter.matrix([
             -1, 0, 0, 0, 255, // R' = 255 - R (Invert to White Crow)
             0, -1, 0, 0, 255, // G' = 255 - G
             0, 0, -1, 0, 255, // B' = 255 - B
-            -1, 0, 0, 1, 0,   // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
+            -1,
+            0,
+            0,
+            1,
+            0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
           ])
         : const ColorFilter.matrix([
             0, 0, 0, 0, 0, // R' = 0 (Keep Black Crow)
             0, 0, 0, 0, 0, // G' = 0
             0, 0, 0, 0, 0, // B' = 0
-            -1, 0, 0, 1, 0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
+            -1,
+            0,
+            0,
+            1,
+            0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
           ]);
 
     // Calculate rotation angle to point towards the target
@@ -188,8 +201,14 @@ class _FlyingCrowAnimationState extends State<FlyingCrowAnimation>
                       child: FittedBox(
                         fit: BoxFit.cover,
                         child: SizedBox(
-                          width: _videoController!.value.size.width.clamp(1.0, 1000.0),
-                          height: _videoController!.value.size.height.clamp(1.0, 1000.0),
+                          width: _videoController!.value.size.width.clamp(
+                            1.0,
+                            1000.0,
+                          ),
+                          height: _videoController!.value.size.height.clamp(
+                            1.0,
+                            1000.0,
+                          ),
                           child: VideoPlayer(_videoController!),
                         ),
                       ),

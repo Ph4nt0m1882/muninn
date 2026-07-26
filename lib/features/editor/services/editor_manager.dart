@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:munnin/core/utils/logger.dart';
+import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
+import 'package:munnin/src/rust/api/models.dart';
 import 'package:munnin/src/rust/api/search.dart' as rust_search;
 
 import 'package:munnin/features/editor/models/opened_file.dart';
@@ -25,7 +28,10 @@ class EditorManager extends ChangeNotifier {
   }
 
   /// Ouvre un fichier. S'il est déjà ouvert, le met simplement au premier plan.
-  Future<void> openFile(String path, {TabOpenAnimation animation = TabOpenAnimation.normal}) async {
+  Future<void> openFile(
+    String path, {
+    TabOpenAnimation animation = TabOpenAnimation.normal,
+  }) async {
     // Vérifie si déjà ouvert
     final existingIndex = _openedFiles.indexWhere((f) => f.path == path);
     if (existingIndex != -1) {
@@ -35,20 +41,32 @@ class EditorManager extends ChangeNotifier {
     }
 
     try {
-      final file = File(path);
-      if (!await file.exists()) return;
-
-      final content = await file.readAsString();
-      _openedFiles.add(OpenedFile(path: path, content: content, openAnimation: animation));
+      final content = await rust_fs.readFileAsString(path: path);
+      final mode = path.toLowerCase().endsWith('.crow')
+          ? EditorMode.settings
+          : EditorMode.markdown;
+      _openedFiles.add(
+        OpenedFile(
+          path: path,
+          content: content,
+          openAnimation: animation,
+          mode: mode,
+        ),
+      );
       _activeFilePath = path;
       notifyListeners();
     } catch (e) {
-      debugPrint("Erreur lors de l'ouverture du fichier : $e");
+      AppLogger.e("Erreur lors de l'ouverture du fichier : $e");
     }
   }
 
   /// Ouvre un fichier et scrolle jusqu'aux offsets donnés
-  Future<void> teleportTo(String path, int startOffset, int endOffset, {TabOpenAnimation animation = TabOpenAnimation.normal}) async {
+  Future<void> teleportTo(
+    String path,
+    int startOffset,
+    int endOffset, {
+    TabOpenAnimation animation = TabOpenAnimation.normal,
+  }) async {
     await openFile(path, animation: animation);
     final file = _openedFiles.where((f) => f.path == path).firstOrNull;
     if (file != null) {
@@ -78,37 +96,53 @@ class EditorManager extends ChangeNotifier {
   }
 
   /// Ouvre un WikiLink et crée le fichier s'il n'existe pas.
-  Future<void> resolveWikiLink(String target, String header, {TabOpenAnimation animation = TabOpenAnimation.normal}) async {
+  Future<void> resolveWikiLink(
+    String target,
+    String header, {
+    TabOpenAnimation animation = TabOpenAnimation.normal,
+  }) async {
     String? foundPath;
-    
-    // 1. Chercher le fichier dans le workspace
+
+    // 1. Chercher le fichier dans le workspace via le scan Rust
     if (wikiRoot != null) {
-      final dir = Directory(wikiRoot!);
-      if (dir.existsSync()) {
-        final files = dir.listSync(recursive: true);
-        for (var f in files) {
-          if (f is File && f.path.endsWith('.md')) {
-            final name = f.path.split(Platform.pathSeparator).last;
-            if (name.toLowerCase() == '$target.md'.toLowerCase()) {
-              foundPath = f.path;
-              break;
-            }
+      try {
+        final tree = await rust_fs.scanDirectory(rootPath: wikiRoot!);
+        String? searchInTree(TreeNode node) {
+          if (!node.isDirectory &&
+              node.name.toLowerCase() == target.toLowerCase()) {
+            return '$wikiRoot${Platform.pathSeparator}${node.path}'.replaceAll(
+              '/',
+              Platform.pathSeparator,
+            );
           }
+          for (var child in node.children) {
+            final res = searchInTree(child);
+            if (res != null) return res;
+          }
+          return null;
         }
+
+        foundPath = searchInTree(tree);
+      } catch (e) {
+        AppLogger.e("Erreur lors de la recherche du WikiLink : $e");
       }
     }
 
     // 2. Créer si non trouvé
     if (foundPath == null && wikiRoot != null) {
       foundPath = '$wikiRoot${Platform.pathSeparator}$target.md';
-      final file = File(foundPath);
-      await file.writeAsString('# $target\n\n');
+      await rust_fs.writeFileAsString(
+        path: foundPath,
+        content: '# $target\n\n',
+      );
     } else if (foundPath == null && _activeFilePath != null) {
       // Fallback si wikiRoot est null, on crée à côté du fichier courant
       final parent = File(_activeFilePath!).parent.path;
       foundPath = '$parent${Platform.pathSeparator}$target.md';
-      final file = File(foundPath);
-      await file.writeAsString('# $target\n\n');
+      await rust_fs.writeFileAsString(
+        path: foundPath,
+        content: '# $target\n\n',
+      );
     }
 
     if (foundPath == null) return;
@@ -117,9 +151,7 @@ class EditorManager extends ChangeNotifier {
     await openFile(foundPath, animation: animation);
 
     // 4. Scroller au header si présent (implémentation future avec teleportTo)
-    if (header.isNotEmpty) {
-      // TODO: chercher l'offset du header et appeler teleportTo
-    }
+    // TODO: chercher l'offset du header et appeler teleportTo si (header.isNotEmpty)
   }
 
   /// Met à jour le contenu d'un fichier (rend dirty)
@@ -230,8 +262,10 @@ class EditorManager extends ChangeNotifier {
 
   Future<void> _saveFileToDisk(OpenedFile openedFile) async {
     try {
-      final file = File(openedFile.path);
-      await file.writeAsString(openedFile.content);
+      await rust_fs.writeFileAsString(
+        path: openedFile.path,
+        content: openedFile.content,
+      );
       openedFile.isDirty = false;
 
       if (openedFile.path.endsWith('.md')) {
@@ -244,7 +278,7 @@ class EditorManager extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
-        print("Erreur lors de la sauvegarde de ${openedFile.path} : $e");
+        AppLogger.e("Erreur lors de la sauvegarde de ${openedFile.path} : $e");
       }
     }
   }

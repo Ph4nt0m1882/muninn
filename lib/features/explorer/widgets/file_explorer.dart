@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:munnin/core/utils/logger.dart';
 import 'package:munnin/features/editor/editor.dart';
 import 'package:munnin/features/explorer/models/explorer_node.dart';
 import 'package:munnin/features/explorer/widgets/explorer_item.dart';
+import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
+import 'package:munnin/src/rust/api/models.dart';
 
 class FileExplorer extends StatefulWidget {
   final String rootPath;
@@ -41,59 +44,40 @@ class FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> loadTree() async {
-    final rootDir = Directory(widget.rootPath);
-    if (!await rootDir.exists()) return;
-
-    final newNodes = await _buildNodes(rootDir, 0);
-    if (mounted) {
-      setState(() {
-        _visibleNodes = newNodes;
-      });
+    try {
+      final tree = await rust_fs.scanDirectory(rootPath: widget.rootPath);
+      final newNodes = _flattenTree(tree, 0, widget.rootPath);
+      if (mounted) {
+        setState(() {
+          _visibleNodes = newNodes;
+        });
+      }
+    } catch (e) {
+      AppLogger.e("Erreur loadTree: $e");
     }
   }
 
-  Future<List<ExplorerNode>> _buildNodes(Directory dir, int depth) async {
+  List<ExplorerNode> _flattenTree(TreeNode node, int depth, String rootPath) {
     List<ExplorerNode> nodes = [];
 
-    try {
-      final entities = await dir.list().toList();
+    for (var child in node.children) {
+      final absPath = '$rootPath${Platform.pathSeparator}${child.path}'
+          .replaceAll('/', Platform.pathSeparator);
+      final isExpanded = _expandedState[absPath] ?? false;
 
-      // Trier : dossiers d'abord, puis fichiers, par ordre alphabétique
-      entities.sort((a, b) {
-        final aIsDir = a is Directory;
-        final bIsDir = b is Directory;
-        if (aIsDir && !bIsDir) return -1;
-        if (!aIsDir && bIsDir) return 1;
-        return a.path.toLowerCase().compareTo(b.path.toLowerCase());
-      });
+      nodes.add(
+        ExplorerNode(
+          entity: child.isDirectory ? Directory(absPath) : File(absPath),
+          depth: depth,
+          isExpanded: isExpanded,
+          isDirectory: child.isDirectory,
+        ),
+      );
 
-      for (var entity in entities) {
-        final name = entity.path.split(RegExp(r'[/\\]')).last;
-
-        // Ignorer les dossiers/fichiers cachés (ex: .crow, .git)
-        if (name.startsWith('.')) continue;
-
-        final isDir = entity is Directory;
-        final isExpanded = _expandedState[entity.path] ?? false;
-
-        nodes.add(
-          ExplorerNode(
-            entity: entity,
-            depth: depth,
-            isExpanded: isExpanded,
-            isDirectory: isDir,
-          ),
-        );
-
-        if (isDir && isExpanded) {
-          final childNodes = await _buildNodes(entity, depth + 1);
-          nodes.addAll(childNodes);
-        }
+      if (child.isDirectory && isExpanded) {
+        nodes.addAll(_flattenTree(child, depth + 1, rootPath));
       }
-    } catch (e) {
-      // Ignorer les erreurs de permission
     }
-
     return nodes;
   }
 
@@ -170,15 +154,16 @@ class FileExplorerState extends State<FileExplorer> {
 
     try {
       if (isDirectory) {
-        await Directory(entityPath).create();
+        await rust_fs.createDirectory(path: entityPath);
         // Ouvre et sélectionne le nouveau dossier
         _expandedState[entityPath] = true;
         _selectedNodePath = entityPath;
       } else {
-        await File(entityPath).create();
+        await rust_fs.createFile(path: entityPath);
       }
       loadTree();
     } catch (e) {
+      AppLogger.e("Erreur lors de la création: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -286,7 +271,7 @@ class FileExplorerState extends State<FileExplorer> {
     final newPath = '$parentPath${Platform.pathSeparator}$finalName';
 
     try {
-      await node.entity.rename(newPath);
+      await rust_fs.renameItem(oldPath: node.entity.path, newPath: newPath);
       // Mise à jour de l'éditeur si ouvert
       EditorManager.instance.renameOpenedFile(node.entity.path, newPath);
 
@@ -331,11 +316,7 @@ class FileExplorerState extends State<FileExplorer> {
     if (confirm != true) return;
 
     try {
-      if (node.isDirectory) {
-        await Directory(node.entity.path).delete(recursive: true);
-      } else {
-        await File(node.entity.path).delete();
-      }
+      await rust_fs.deleteItem(path: node.entity.path);
       EditorManager.instance.closeFile(node.entity.path);
       if (_selectedNodePath == node.entity.path) _selectedNodePath = null;
       loadTree();
@@ -352,16 +333,13 @@ class FileExplorerState extends State<FileExplorer> {
     String sourcePath,
     String targetDirectoryPath,
   ) async {
-    final sourceEntity = FileSystemEntity.isDirectorySync(sourcePath)
-        ? Directory(sourcePath)
-        : File(sourcePath);
     final sourceName = sourcePath.split(RegExp(r'[/\\]')).last;
     final newPath = '$targetDirectoryPath${Platform.pathSeparator}$sourceName';
 
     if (sourcePath == newPath) return; // Même endroit
 
     try {
-      await sourceEntity.rename(newPath);
+      await rust_fs.renameItem(oldPath: sourcePath, newPath: newPath);
       EditorManager.instance.renameOpenedFile(sourcePath, newPath);
       loadTree();
     } catch (e) {

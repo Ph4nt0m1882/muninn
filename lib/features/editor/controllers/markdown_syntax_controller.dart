@@ -25,7 +25,9 @@ class MarkdownSyntaxController extends TextEditingController {
     // 2. Footnotes: [^id]
     // 3. Markdown links: [title](url)
     // 4. HTTP links: http(s)://...
-    final regex = RegExp(r'\[\[([^\]]+)\]\]|\[\^([^\]]+)\]|\[([^\]]+)\]\(([^)]+)\)|https?:\/\/[^\s]+');
+    final regex = RegExp(
+      r'\[\[([^\]]+)\]\]|\[\^([^\]]+)\]|\[([^\]]+)\]\(([^)]+)\)|https?:\/\/[^\s]+',
+    );
     final matches = regex.allMatches(textStr);
 
     if (matches.isEmpty) {
@@ -61,7 +63,8 @@ class MarkdownSyntaxController extends TextEditingController {
         linkColor = theme.colorScheme.secondary; // Footnotes in secondary color
       } else if (isMarkdownLink) {
         url = match.group(4)!;
-        linkColor = theme.colorScheme.primary; // Markdown links in primary color
+        linkColor =
+            theme.colorScheme.primary; // Markdown links in primary color
       } else {
         url = fullMatch;
         linkColor = theme.colorScheme.primary; // HTTP links in primary color

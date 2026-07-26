@@ -29,7 +29,7 @@ class WikiLinkSyntax extends InlineSyntax {
   @override
   bool onMatch(InlineParser parser, Match match) {
     final inner = match[1] ?? '';
-    
+
     String file = inner;
     String header = '';
     String alias = inner;
@@ -40,7 +40,7 @@ class WikiLinkSyntax extends InlineSyntax {
       alias = inner.substring(pipeIndex + 1);
       file = inner.substring(0, pipeIndex);
     }
-    
+
     // Check for Header (inside parenthesis)
     final RegExp fileHeaderRegex = RegExp(r'^([^(]+)\(([^)]+)\)$');
     final fhMatch = fileHeaderRegex.firstMatch(file);

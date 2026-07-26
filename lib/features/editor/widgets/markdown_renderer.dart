@@ -53,7 +53,8 @@ class MarkdownRenderer extends StatelessWidget {
     // 0.6 Pré-traitement pour les définitions de notes de bas de page [^1]: def
     final String preprocessedContent3 = preprocessedContent2.replaceAllMapped(
       RegExp(r'^\[\^([^\]]+)\]:\s*(.+)$', multiLine: true),
-      (match) => '<footnote-def id="${match.group(1)}">${match.group(2)}</footnote-def>',
+      (match) =>
+          '<footnote-def id="${match.group(1)}">${match.group(2)}</footnote-def>',
     );
 
     // 1. Conversion Markdown -> HTML
@@ -198,26 +199,29 @@ class MarkdownRenderer extends StatelessWidget {
             onTapDown: (details) {
               final startPos = details.globalPosition;
               final size = MediaQuery.of(context).size;
-              final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+              final RenderBox? renderBox =
+                  context.findRenderObject() as RenderBox?;
               Offset endPos = Offset(size.width * 0.5, 76); // Fallback
-              
+
               if (renderBox != null) {
-                final Offset rendererGlobalPos = renderBox.localToGlobal(Offset.zero);
+                final Offset rendererGlobalPos = renderBox.localToGlobal(
+                  Offset.zero,
+                );
                 // MarkdownRenderer is right below the 40px tab bar.
                 // The center of the tab bar vertically is rendererGlobalPos.dy - 20.
                 final double tabCenterY = rendererGlobalPos.dy - 20;
-                
+
                 // Calculate approximate X offset for the new tab
                 double totalWidth = 0;
                 for (final file in EditorManager.instance.openedFiles) {
                   // Approximate width of an existing tab (padding + icons + text)
                   totalWidth += 80 + (file.name.length * 8);
                 }
-                
+
                 // Add half the width of the new tab
                 final newTabWidth = 80 + (target.split('/').last.length * 8);
                 totalWidth += newTabWidth / 2;
-                
+
                 // The tabs start at the left edge of the MarkdownRenderer area
                 // (Assuming padding is minimal, rendererGlobalPos.dx is roughly the left edge)
                 endPos = Offset(rendererGlobalPos.dx + totalWidth, tabCenterY);
@@ -233,7 +237,11 @@ class MarkdownRenderer extends StatelessWidget {
                 while (!animationFinished) {
                   await Future.delayed(const Duration(milliseconds: 50));
                 }
-                EditorManager.instance.resolveWikiLink(target, header, animation: TabOpenAnimation.raven);
+                EditorManager.instance.resolveWikiLink(
+                  target,
+                  header,
+                  animation: TabOpenAnimation.raven,
+                );
               }();
             },
             child: MouseRegion(

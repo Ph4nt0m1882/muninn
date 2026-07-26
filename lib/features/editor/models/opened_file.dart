@@ -1,4 +1,5 @@
-enum EditorMode { markdown, render }
+enum EditorMode { markdown, render, settings }
+
 enum TabOpenAnimation { normal, raven, none }
 
 class OpenedFile {

@@ -8,10 +8,3 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
-
-/// Initialise un nouveau wiki
-/// Crée un dossier `name` dans `parent_path` et y ajoute le dossier caché `.crow`
-String initWiki({required String parentPath, required String name}) => RustLib
-    .instance
-    .api
-    .crateApiSimpleInitWiki(parentPath: parentPath, name: name);

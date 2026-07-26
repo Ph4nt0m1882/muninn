@@ -1,20 +1,29 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WikiAnchor {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CrowMetadata {
     pub title: String,
     pub version: String,
     pub created_at: Option<i64>,
+    pub updated_at: Option<i64>,
 }
 
-impl Default for WikiAnchor {
+impl Default for CrowMetadata {
     fn default() -> Self {
         Self {
             title: "Mon Wiki".to_string(),
-            version: "1.0".to_string(),
+            version: "2.0".to_string(),
             created_at: None,
+            updated_at: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CrowFile {
+    pub metadata: CrowMetadata,
+    pub settings: String, // YAML string
+    pub modules: String, // YAML/JSON string
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

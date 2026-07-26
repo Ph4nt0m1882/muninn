@@ -4,9 +4,9 @@ Ce document rassemble les prochaines évolutions majeures prévues pour le proje
 
 ## 📝 1. L'Éditeur de Texte Riche (Priorité Haute)
 Amélioration de l'expérience d'écriture avec un véritable éditeur de texte.
-- [ ] Remplacer le `TextField` standard par un éditeur supportant le texte riche (soit coloration syntaxique Markdown, soit rendu WYSIWYG type Flutter Quill).
-- [ ] Intégrer la logique d'analyse via Rust (`pulldown-cmark`) pour transformer le texte édité en blocs ("chunks") et garantir une sauvegarde en pur Markdown (`.md`).
-- [ ] Implémenter l'annulation/rétablissement (Undo/Redo via `Ctrl+Z` / `Ctrl+Y`).
+- [x] Remplacer le `TextField` standard par un éditeur supportant le texte riche (coloration syntaxique Markdown accomplie avec `re_editor`).
+- [x] Garantir une sauvegarde en pur Markdown (`.md`) tout en gardant une interface riche.
+- [x] Implémenter l'annulation/rétablissement (Undo/Redo via `Ctrl+Z` / `Ctrl+Y`) ainsi que les raccourcis de productivité (Gras, Italique, Auto-pairing).
 
 ## 🔍 2. Moteur de Recherche Globale
 Permettre de retrouver ses connaissances instantanément.
@@ -17,8 +17,8 @@ Permettre de retrouver ses connaissances instantanément.
 
 ## 🔗 3. Système de Liens Wiki & Backlinks
 Transformer les notes isolées en un réseau de connaissances connecté.
-- [ ] Permettre la création de liens internes avec la syntaxe `[[Nom de la note]]`.
-- [ ] Gérer le clic sur ces liens pour ouvrir l'onglet correspondant (ou créer le fichier s'il n'existe pas encore).
+- [x] Permettre la création de liens internes avec la syntaxe `[[Nom de la note]]`.
+- [x] Gérer le clic sur ces liens pour ouvrir l'onglet correspondant (ou créer le fichier s'il n'existe pas encore).
 - [ ] (Optionnel) Implémenter un panneau "Backlinks" pour voir quelles autres notes pointent vers la note actuellement ouverte.
 - [ ] (Long terme) Créer une vue "Graphe" globale des interconnexions (style Obsidian).
 
