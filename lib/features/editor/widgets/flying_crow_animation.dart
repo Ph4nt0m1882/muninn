@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
+import 'package:munnin/core/theme/theme_manager.dart';
 import 'package:munnin/features/editor/widgets/crow_video_data.dart';
 
 class FlyingCrowAnimation extends StatefulWidget {
@@ -143,32 +144,17 @@ class _FlyingCrowAnimationState extends State<FlyingCrowAnimation>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
+    final targetColor = currentStyle.ui.ravenColor ?? (isDark ? Colors.white : Colors.black);
 
     // The video is a Black Crow on a White Background.
-    // For Light Mode: We want the Black Crow (R=0) to be Opaque (A=255), and White Background (R=255) to be Transparent (A=0).
-    // For Dark Mode: We want the White Crow (R=255) to be Opaque (A=255), and Black Background (R=0) to be Transparent (A=0).
-
-    final ColorFilter colorFilter = isDark
-        ? const ColorFilter.matrix([
-            -1, 0, 0, 0, 255, // R' = 255 - R (Invert to White Crow)
-            0, -1, 0, 0, 255, // G' = 255 - G
-            0, 0, -1, 0, 255, // B' = 255 - B
-            -1,
-            0,
-            0,
-            1,
-            0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
-          ])
-        : const ColorFilter.matrix([
-            0, 0, 0, 0, 0, // R' = 0 (Keep Black Crow)
-            0, 0, 0, 0, 0, // G' = 0
-            0, 0, 0, 0, 0, // B' = 0
-            -1,
-            0,
-            0,
-            1,
-            0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
-          ]);
+    // We want the Black Crow (R=0) to become targetColor, and White Background (R=255) to be Transparent (A=0).
+    final ColorFilter colorFilter = ColorFilter.matrix([
+      0, 0, 0, 0, targetColor.red.toDouble(),
+      0, 0, 0, 0, targetColor.green.toDouble(),
+      0, 0, 0, 0, targetColor.blue.toDouble(),
+      -1, 0, 0, 1, 0, // A' = A - R (Transparent pixels stay transparent, White bg becomes transparent)
+    ]);
 
     // Calculate rotation angle to point towards the target
     final dx = widget.endPos.dx - widget.startPos.dx;

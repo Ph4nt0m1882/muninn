@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:munnin/src/rust/frb_generated.dart';
 import 'package:munnin/src/rust/api/settings.dart';
 import 'package:munnin/core/theme/theme.dart';
+import 'package:munnin/core/theme/watermark_background.dart';
 import 'package:munnin/features/navigation/navigation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
@@ -564,6 +566,9 @@ class _MunninAppState extends State<MunninApp> {
               constraints.maxWidth < ResponsiveLayout.mobileBreakpoint;
 
           return Scaffold(
+            backgroundColor: currentCrowStyle.ui.backgroundImage != null
+                ? Colors.transparent
+                : themeData.scaffoldBackgroundColor,
             appBar: const CustomTopBar(),
             // Si mobile, on affiche la BottomBar, sinon rien (car Desktop utilise la LeftSidebar)
             bottomNavigationBar: isMobile
@@ -575,6 +580,19 @@ class _MunninAppState extends State<MunninApp> {
             // Le body utilise un Stack pour permettre aux fenêtres de flotter au-dessus de l'éditeur
             body: Stack(
               children: [
+                // Couche de Fond (Image Filigrane Bicolore)
+                if (currentCrowStyle.ui.backgroundImage != null)
+                  Positioned.fill(
+                    child: Container(
+                      color: themeData.scaffoldBackgroundColor,
+                      child: WatermarkBackground(
+                        imagePath: currentCrowStyle.ui.backgroundImage!,
+                        inkColor: themeData.colorScheme.onSurface,
+                        opacity: currentCrowStyle.ui.backgroundImageOpacity,
+                      ),
+                    ),
+                  ),
+
                 // Couche 0 : Le Layout de fond (Editeur ou Accueil)
                 ResponsiveLayout(
                   onThemeToggle: _openThemeSettings,

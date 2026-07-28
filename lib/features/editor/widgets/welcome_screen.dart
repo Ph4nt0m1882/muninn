@@ -37,8 +37,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final iconPath = isDark
-        ? 'assets/Images/Icones/munnin(dark).svg'
-        : 'assets/Images/Icones/munnin(light).svg';
+        ? 'assets/images/icones/munnin(dark).svg'
+        : 'assets/images/icones/munnin(light).svg';
 
     final displayedWikis = _showAllWikis
         ? widget.recentWikis

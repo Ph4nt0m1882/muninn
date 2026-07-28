@@ -15,6 +15,9 @@ import 'package:munnin/features/editor/utils/patched_markdown_syntax.dart';
 import 'package:munnin/features/editor/widgets/local_search_widget.dart';
 import 'package:munnin/core/commands/commands.dart';
 
+import 'package:munnin/core/theme/theme_manager.dart';
+import 'package:munnin/features/editor/utils/custom_monokai_theme.dart';
+
 class MarkdownEditor extends StatefulWidget {
   const MarkdownEditor({super.key});
 
@@ -204,7 +207,9 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final manager = EditorManager.instance;
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
     final openedFiles = manager.openedFiles;
 
     if (openedFiles.isEmpty) {
@@ -255,7 +260,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
         // Editor Area
         Expanded(
           child: Material(
-            color: theme.scaffoldBackgroundColor,
+            color: Colors.transparent,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: manager.activeFile?.mode == EditorMode.settings
@@ -408,14 +413,14 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                                 style: CodeEditorStyle(
                                   fontFamily: 'Consolas',
                                   fontSize: 14,
-                                  fontHeight: 1.5,
+                                  fontHeight: currentStyle.ui.lineHeight,
                                   codeTheme: CodeHighlightTheme(
                                     languages: {
                                       'markdown': CodeHighlightThemeMode(
                                         mode: getPatchedMarkdownSyntax(),
                                       ),
                                     },
-                                    theme: monokaiSublimeTheme,
+                                    theme: getCustomMarkdownTheme(currentStyle.ui.markdownTheme),
                                   ),
                                 ),
                                 wordWrap: true,
@@ -690,7 +695,7 @@ class _CustomScrollbar extends StatefulWidget {
   const _CustomScrollbar({
     required this.textController,
     required this.mainScrollController,
-    required this.showMinimapText,
+    this.showMinimapText = true,
   });
 
   @override
@@ -794,6 +799,7 @@ class _CustomScrollbarState extends State<_CustomScrollbar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
     final width = widget.showMinimapText ? 120.0 : 16.0;
 
     return Container(
@@ -814,14 +820,14 @@ class _CustomScrollbarState extends State<_CustomScrollbar> {
                   style: CodeEditorStyle(
                     fontFamily: 'Consolas',
                     fontSize: 3.5,
-                    fontHeight: 1.5,
+                    fontHeight: currentStyle.ui.lineHeight,
                     codeTheme: CodeHighlightTheme(
                       languages: {
                         'markdown': CodeHighlightThemeMode(
                           mode: getPatchedMarkdownSyntax(),
                         ),
                       },
-                      theme: monokaiSublimeTheme,
+                      theme: getCustomMarkdownTheme(currentStyle.ui.markdownTheme),
                     ),
                   ),
                   wordWrap: true,

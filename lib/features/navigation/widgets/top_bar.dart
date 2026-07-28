@@ -21,9 +21,9 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     // Chemin vers l'icône en fonction du thème
-    final iconPath = isDark
-        ? 'assets/Images/Icones/munnin(dark).svg'
-        : 'assets/Images/Icones/munnin(light).svg';
+    final iconPath = Theme.of(context).brightness == Brightness.dark
+        ? 'assets/images/icones/munnin(dark).svg'
+        : 'assets/images/icones/munnin(light).svg';
 
     return Container(
       color: theme.scaffoldBackgroundColor,

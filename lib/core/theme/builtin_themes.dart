@@ -58,5 +58,42 @@ class BuiltinThemes {
     ),
   );
 
-  static const List<CrowStyle> all = [light, dark, lightHC, darkHC];
+  static const CrowStyle odin = CrowStyle(
+    id: 'builtin_odin',
+    name: 'Odin',
+    ui: CrowStyleUI(
+      brightness: Brightness.light,
+      background: Color(0xFFFBF8F1),
+      surface: Color(0xFFFFFFFF),
+      surfaceHighlight: Color(0xFFF0E6D2),
+      textPrimary: Color(0xFF2C241B),
+      textSecondary: Color(0xFF7A6B53),
+      accent: Color(0xFFD4AF37),
+      backgroundImage: 'assets/images/bg/odin.svg',
+    ),
+  );
+
+  static const CrowStyle huginn = CrowStyle(
+    id: 'builtin_huginn',
+    name: 'Huginn',
+    ui: CrowStyleUI(
+      brightness: Brightness.dark,
+      background: Color(0xFF13111C),
+      surface: Color(0xFF1E1A29),
+      surfaceHighlight: Color(0xFF2A2438),
+      textPrimary: Color(0xFFE2E0E5),
+      textSecondary: Color(0xFF9A94A8),
+      accent: Color(0xFF8B5CF6),
+      backgroundImage: 'assets/images/bg/huginn.svg',
+    ),
+  );
+
+  static const List<CrowStyle> all = [
+    light,
+    lightHC,
+    odin,
+    dark,
+    darkHC,
+    huginn,
+  ];
 }

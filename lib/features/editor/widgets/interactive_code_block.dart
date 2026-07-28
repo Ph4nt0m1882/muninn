@@ -6,7 +6,8 @@ import 'package:flutter_highlighter/themes/atom-one-dark.dart';
 import 'package:flutter_highlighter/themes/atom-one-light.dart';
 import 'package:highlighter/highlighter.dart' show highlight, Node;
 import 'package:simple_icons/simple_icons.dart';
-
+import 'package:munnin/core/theme/theme_manager.dart';
+import 'package:munnin/features/editor/utils/custom_monokai_theme.dart';
 // Contrôleur de texte personnalisé pour la coloration syntaxique en temps réel
 class CodeEditingController extends TextEditingController {
   String language;
@@ -369,7 +370,8 @@ class _InteractiveCodeBlockState extends State<InteractiveCodeBlock>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final baseTheme = isDark ? atomOneDarkTheme : atomOneLightTheme;
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
+    final baseTheme = getSyntaxTheme(currentStyle.ui.codeTheme);
     final syntaxTheme = Map<String, TextStyle>.from(baseTheme);
 
     if (syntaxTheme.containsKey('root')) {
@@ -388,7 +390,7 @@ class _InteractiveCodeBlockState extends State<InteractiveCodeBlock>
     final codeTextStyle = TextStyle(
       fontFamily: 'Consolas',
       fontSize: 14.0,
-      height: 1.4,
+      height: currentStyle.ui.lineHeight,
       color: syntaxTheme['root']?.color ?? theme.textTheme.bodyMedium?.color,
     );
 

@@ -11,6 +11,8 @@ import 'package:munnin/features/editor/widgets/flying_crow_animation.dart';
 import 'package:munnin/features/editor/utils/icon_parser.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:munnin/features/editor/services/link_preview_manager.dart';
+import 'package:munnin/core/theme/theme_manager.dart';
+import 'package:munnin/core/theme/crow_style.dart';
 
 /// Widget responsable du rendu HTML à partir du Markdown brut.
 class MarkdownRenderer extends StatelessWidget {
@@ -32,6 +34,7 @@ class MarkdownRenderer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
 
     // 0. Pré-traitement pour intercepter les cases à cocher personnalisées
     int checkboxId = 0;
@@ -111,16 +114,22 @@ class MarkdownRenderer extends StatelessWidget {
   }
 
   Map<String, Style> _buildHtmlStyles(ThemeData theme) {
+    final currentStyle = theme.extension<CrowStyleExtension>()!.style;
+    final titleBorder = currentStyle.render.titleSeparators 
+        ? Border(bottom: BorderSide(color: theme.dividerColor, width: 2)) 
+        : null;
+
     return {
       "body": Style(
         fontFamily: theme.textTheme.bodyMedium?.fontFamily,
         fontSize: FontSize(14.0),
         color: theme.textTheme.bodyMedium?.color,
+        lineHeight: LineHeight(currentStyle.ui.lineHeight),
         margin: Margins.zero,
         padding: HtmlPaddings.zero,
       ),
-      "h1": Style(color: theme.colorScheme.primary),
-      "h2": Style(color: theme.colorScheme.primary),
+      "h1": Style(color: theme.colorScheme.primary, border: titleBorder),
+      "h2": Style(color: theme.colorScheme.primary, border: titleBorder),
       "a": Style(
         color: theme.colorScheme.secondary,
         textDecoration: TextDecoration.none,

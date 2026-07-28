@@ -2,9 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'crow_style.dart';
 
+class CrowStyleExtension extends ThemeExtension<CrowStyleExtension> {
+  final CrowStyle style;
+  
+  const CrowStyleExtension({required this.style});
+
+  @override
+  ThemeExtension<CrowStyleExtension> copyWith({CrowStyle? style}) {
+    return CrowStyleExtension(style: style ?? this.style);
+  }
+
+  @override
+  ThemeExtension<CrowStyleExtension> lerp(ThemeExtension<CrowStyleExtension>? other, double t) {
+    if (other is! CrowStyleExtension) return this;
+    return CrowStyleExtension(style: other.style); // Pas d'interpolation complexe pour l'instant
+  }
+}
+
 class ThemeManager {
   static ThemeData buildThemeData(CrowStyle style) {
     return ThemeData(
+      extensions: [
+        CrowStyleExtension(style: style),
+      ],
       brightness: style.ui.brightness,
       scaffoldBackgroundColor: style.ui.background,
       primaryColor: style.ui.accent,
