@@ -23,12 +23,16 @@ class MarkdownRenderer extends StatelessWidget {
 
   /// Callback déclenché lorsqu'une case à cocher est cliquée.
   final void Function(int id, String newState)? onCheckboxToggled;
+  
+  /// Callback déclenché lorsqu'une image doit être importée.
+  final void Function(String src, String alt)? onImageImportRequested;
 
   const MarkdownRenderer({
     super.key,
     required this.content,
     this.filePath,
     this.onCheckboxToggled,
+    this.onImageImportRequested,
   });
 
   @override
@@ -70,6 +74,7 @@ class MarkdownRenderer extends StatelessWidget {
         DoubleBangImageSyntax(), // Notre syntaxe custom !![]()
         WikiLinkSyntax(),
         FootnoteRefSyntax(),
+        ContextLinkSyntax(), // Syntaxe d'injection de contexte @[]()
       ],
     );
 
@@ -198,6 +203,44 @@ class MarkdownRenderer extends StatelessWidget {
     void Function(int, String)? onCheckboxToggled,
   ) {
     return [
+      TagExtension(
+        tagsToExtend: {"munnin-context-link"},
+        builder: (extensionContext) {
+          final title = extensionContext.element?.attributes['title'] ?? 'Fichier';
+          final path = extensionContext.element?.attributes['path'] ?? '';
+          
+          return Tooltip(
+            message: path,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    LucideIcons.file_text,
+                    size: 14,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
       TagExtension(
         tagsToExtend: {"wiki-link"},
         builder: (extensionContext) {
@@ -563,27 +606,72 @@ class MarkdownRenderer extends StatelessWidget {
         builder: (extensionContext) {
           final src = extensionContext.attributes['src'] ?? '';
           final alt = extensionContext.attributes['alt'] ?? '';
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.colorScheme.tertiary, width: 2),
-              borderRadius: BorderRadius.circular(8),
-              color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.download, color: theme.colorScheme.tertiary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Image spéciale : $alt\n($src)',
-                    style: TextStyle(color: theme.colorScheme.tertiary),
+          
+          bool isExternal = src.startsWith('http') ||
+              src.startsWith('file://') ||
+              src.startsWith('/') ||
+              src.contains(r':\');
+
+          if (isExternal) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (onImageImportRequested != null) {
+                onImageImportRequested!(src, alt);
+              }
+            });
+
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: theme.colorScheme.tertiary, width: 2),
+                borderRadius: BorderRadius.circular(8),
+                color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                ),
-              ],
-            ),
-          );
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Importation de l\'image en cours...',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          src,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            // L'image est déjà locale, on l'affiche centrée avec un joli effet
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 16.0),
+              alignment: Alignment.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _buildImageWidget(src, alt, theme),
+              ),
+            );
+          }
         },
       ),
       TagExtension(

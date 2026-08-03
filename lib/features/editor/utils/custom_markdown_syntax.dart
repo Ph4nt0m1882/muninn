@@ -71,3 +71,21 @@ class FootnoteRefSyntax extends InlineSyntax {
     return true;
   }
 }
+
+class ContextLinkSyntax extends InlineSyntax {
+  ContextLinkSyntax() : super(r'@\[([^\]]+)\]\(([^)]+)\)');
+
+  @override
+  bool onMatch(InlineParser parser, Match match) {
+    final title = match[1] ?? '';
+    final path = match[2] ?? '';
+
+    final el = Element.empty('munnin-context-link');
+    el.attributes['title'] = title;
+    el.attributes['path'] = path;
+    
+    parser.addNode(el);
+    return true;
+  }
+}
+

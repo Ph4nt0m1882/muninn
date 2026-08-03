@@ -1,0 +1,14 @@
+# --- Global System Prompts ---
+../01_identity.md
+../02_tone_and_stance.md
+../03_integrity.md
+../04_domain_rules.md
+../05_reasoning_method.md
+../06_markdown_core.md
+../07_app_markdown.md
+../08_RAG_content.md
+../09_metadata_frontmatter.md
+../10_context_injection.md
+../11_action_boundaries.md
+../12_fallback_and_errors.md
+../15_output_formatting_ui.md

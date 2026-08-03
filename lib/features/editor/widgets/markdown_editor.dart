@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:path/path.dart' as p;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,11 @@ import 'package:munnin/features/editor/widgets/hover_chunk_indicator.dart';
 import 'package:munnin/features/editor/utils/patched_markdown_syntax.dart';
 import 'package:munnin/features/editor/widgets/local_search_widget.dart';
 import 'package:munnin/core/commands/commands.dart';
+
+import 'package:munnin/features/editor/widgets/interactive_code_block.dart';
+import 'package:munnin/features/editor/widgets/welcome_screen.dart';
+import 'package:munnin/features/editor/widgets/metadata_dialog.dart';
+import 'package:munnin/features/editor/models/file_metadata.dart';
 
 import 'package:munnin/core/theme/theme_manager.dart';
 import 'package:munnin/features/editor/utils/custom_monokai_theme.dart';
@@ -195,13 +201,180 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
   }
 
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent) {
+    if (event is KeyDownEvent || event is KeyRepeatEvent) {
       if (event.logicalKey == LogicalKeyboardKey.tab) {
         _insertText('  ');
         return KeyEventResult.handled;
       }
+      
+      // Ctrl+Y pour Redo
+      if (event.logicalKey == LogicalKeyboardKey.keyY && HardwareKeyboard.instance.isControlPressed) {
+        _textController.redo();
+        return KeyEventResult.handled;
+      }
+      
+      // Wrapping characters around selection
+      if (event.character != null) {
+        final char = event.character!;
+        final wrapChars = {'*': '*', '_': '_', '"': '"', '\'': '\'', '(': ')', '[': ']', '{': '}'};
+        
+        if (wrapChars.containsKey(char)) {
+          final selection = _textController.selection;
+          
+          if (selection.baseIndex >= 0 && selection.extentIndex >= 0) {
+            final isCollapsed = selection.baseIndex == selection.extentIndex && selection.baseOffset == selection.extentOffset;
+            
+            // Si la sélection est vide, on fait de l'auto-close (sauf pour l'apostrophe)
+            if (isCollapsed) {
+              if (char != '\'') {
+                final closingChar = wrapChars[char]!;
+                _insertText('$char$closingChar');
+                
+                // On recule le curseur d'un caractère pour le placer au milieu
+                Future.microtask(() {
+                  _textController.selection = selection.copyWith(
+                    baseOffset: selection.baseOffset + 1,
+                    extentOffset: selection.extentOffset + 1,
+                  );
+                });
+                return KeyEventResult.handled;
+              }
+            } 
+            // Si on a une vraie sélection, on enveloppe
+            else {
+              final lines = _textController.codeLines;
+              int absoluteBase = 0;
+              for (int i = 0; i < selection.baseIndex; i++) {
+                absoluteBase += lines[i].text.length + 1;
+              }
+              absoluteBase += selection.baseOffset;
+              
+              int absoluteExtent = 0;
+              for (int i = 0; i < selection.extentIndex; i++) {
+                absoluteExtent += lines[i].text.length + 1;
+              }
+              absoluteExtent += selection.extentOffset;
+              
+              final start = absoluteBase < absoluteExtent ? absoluteBase : absoluteExtent;
+              final end = absoluteBase > absoluteExtent ? absoluteBase : absoluteExtent;
+              
+              final currentText = _textController.text;
+              if (start >= 0 && end <= currentText.length) {
+                final selectedText = currentText.substring(start, end);
+                final newText = currentText.replaceRange(start, end, '$char$selectedText${wrapChars[char]}');
+                _textController.text = newText;
+                
+                bool baseIsStart = selection.baseIndex < selection.extentIndex || 
+                                  (selection.baseIndex == selection.extentIndex && selection.baseOffset <= selection.extentOffset);
+                
+                int newBaseOffset = selection.baseOffset;
+                int newExtentOffset = selection.extentOffset;
+
+                if (selection.baseIndex == selection.extentIndex) {
+                   newBaseOffset++;
+                   newExtentOffset++;
+                } else {
+                   if (baseIsStart) {
+                      newBaseOffset++;
+                   } else {
+                      newExtentOffset++;
+                   }
+                }
+                
+                Future.microtask(() {
+                  _textController.selection = selection.copyWith(
+                     baseOffset: newBaseOffset,
+                     extentOffset: newExtentOffset,
+                  );
+                });
+                return KeyEventResult.handled;
+              }
+            }
+          }
+        }
+      }
     }
     return KeyEventResult.ignored;
+  }
+
+  Future<void> _handleImageImport(String src, String alt) async {
+    final activePath = EditorManager.instance.activeFilePath;
+    if (activePath == null) return;
+
+    try {
+      final fileDir = Directory(p.dirname(activePath));
+      final assetsDir = Directory(p.join(fileDir.path, '.assets'));
+      if (!await assetsDir.exists()) {
+        await assetsDir.create(recursive: true);
+      }
+
+      final uri = Uri.tryParse(src);
+      if (uri == null) return;
+
+      String fileName = p.basename(uri.path);
+      if (fileName.isEmpty || !fileName.contains('.')) {
+        fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.png';
+      }
+
+      final destinationPath = p.join(assetsDir.path, fileName);
+      final destFile = File(destinationPath);
+
+      if (src.startsWith('http')) {
+        final client = HttpClient();
+        final request = await client.getUrl(uri);
+        final response = await request.close();
+        if (response.statusCode == 200) {
+          await response.pipe(destFile.openWrite());
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Échec du téléchargement: ${response.statusCode}")),
+            );
+          }
+          return;
+        }
+      } else {
+        // Chemin local
+        final localFile = File(src);
+        if (await localFile.exists()) {
+          await localFile.copy(destinationPath);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Le fichier local n'existe pas.")),
+          );
+          return;
+        }
+      }
+
+      final memoryContent = EditorManager.instance.activeFile?.content ?? '';
+      
+      // Attention aux caractères d'échappement dans oldTagText
+      final oldTagText = '!![$alt]($src)';
+      final newSrc = '.assets/$fileName';
+      final newTagText = '!![$alt]($newSrc)'; // On garde !! selon la demande de l'utilisateur
+      
+      if (memoryContent.contains(oldTagText)) {
+        final newMemoryContent = memoryContent.replaceAll(oldTagText, newTagText);
+        EditorManager.instance.updateFileContent(activePath, newMemoryContent);
+        
+        final file = File(activePath);
+        await file.writeAsString(newMemoryContent);
+        EditorManager.instance.markAsClean(activePath);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image importée avec succès !')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Erreur lors de l'import de l'image: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur d'import : $e")),
+        );
+      }
+    }
   }
 
   @override
@@ -383,15 +556,16 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                                   }
                                 }
                               } catch (e) {
-                                debugPrint(
-                                  "Erreur de sauvegarde silencieuse: $e",
-                                );
+                                  debugPrint(
+                                    "Erreur de sauvegarde silencieuse: $e",
+                                  );
+                                }
                               }
-                            }
-                          },
+                            },
+                            onImageImportRequested: (src, alt) => _handleImageImport(src, alt),
+                          ),
                         ),
-                      ),
-                    )
+                      )
                   : CallbackShortcuts(
                       bindings: {
                         const SingleActivator(
@@ -408,6 +582,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                           children: [
                             Expanded(
                               child: CodeEditor(
+                                autocompleteSymbols: false,
                                 controller: _textController,
                                 scrollController: _scrollController,
                                 style: CodeEditorStyle(
@@ -614,17 +789,31 @@ class _EditorTabState extends State<_EditorTab>
                     ),
                   ),
                 ),
-              // Nom du fichier
-              Text(
-                widget.file.name + (widget.file.isDirty ? ' *' : ''),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: widget.isActive
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                  fontStyle: widget.file.isDirty
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+              // Nom du fichier avec gestion des métadonnées
+              InkWell(
+                onTap: widget.file.path.toLowerCase().endsWith('.md') && widget.file.metadata?.status != NoteStatus.system
+                    ? () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => MetadataDialog(file: widget.file),
+                        );
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                  child: Text(
+                    widget.file.name + (widget.file.isDirty ? ' *' : ''),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: textColor,
+                      fontWeight: widget.isActive
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      fontStyle: widget.file.isDirty
+                          ? FontStyle.italic
+                          : FontStyle.normal,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -813,6 +1002,7 @@ class _CustomScrollbarState extends State<_CustomScrollbar> {
               opacity: 0.8,
               child: IgnorePointer(
                 child: CodeEditor(
+                  autocompleteSymbols: false,
                   controller: widget.textController,
                   scrollController: _minimapScrollController,
                   scrollbarBuilder: (context, child, details) => child,

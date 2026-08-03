@@ -137,4 +137,5 @@ testMunnin
 # Munnin test wikis
 testMunnin/
 **/.crowindex
+.fastembed_cache/
 

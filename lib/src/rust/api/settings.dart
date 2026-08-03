@@ -17,6 +17,10 @@ AppSettings loadSettings() =>
 void saveTheme({required int index}) =>
     RustLib.instance.api.crateApiSettingsSaveTheme(index: index);
 
+/// Sauvegarde la clé d'API Google
+void saveGoogleApiKey({required String key}) =>
+    RustLib.instance.api.crateApiSettingsSaveGoogleApiKey(key: key);
+
 /// Ajoute un wiki à l'historique récent
 void addRecentWiki({required String wikiPath}) =>
     RustLib.instance.api.crateApiSettingsAddRecentWiki(wikiPath: wikiPath);
@@ -24,14 +28,20 @@ void addRecentWiki({required String wikiPath}) =>
 class AppSettings {
   final int themeIndex;
   final List<String> recentWikis;
+  final String? googleApiKey;
 
-  const AppSettings({required this.themeIndex, required this.recentWikis});
+  const AppSettings({
+    required this.themeIndex,
+    required this.recentWikis,
+    this.googleApiKey,
+  });
 
   static Future<AppSettings> default_() =>
       RustLib.instance.api.crateApiSettingsAppSettingsDefault();
 
   @override
-  int get hashCode => themeIndex.hashCode ^ recentWikis.hashCode;
+  int get hashCode =>
+      themeIndex.hashCode ^ recentWikis.hashCode ^ googleApiKey.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -39,5 +49,6 @@ class AppSettings {
       other is AppSettings &&
           runtimeType == other.runtimeType &&
           themeIndex == other.themeIndex &&
-          recentWikis == other.recentWikis;
+          recentWikis == other.recentWikis &&
+          googleApiKey == other.googleApiKey;
 }

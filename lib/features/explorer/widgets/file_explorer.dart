@@ -4,6 +4,8 @@ import 'package:munnin/core/utils/logger.dart';
 import 'package:munnin/features/editor/editor.dart';
 import 'package:munnin/features/explorer/models/explorer_node.dart';
 import 'package:munnin/features/explorer/widgets/explorer_item.dart';
+import 'package:munnin/features/editor/services/editor_manager.dart';
+import 'package:munnin/features/editor/models/file_metadata.dart';
 import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/models.dart';
 
@@ -160,6 +162,15 @@ class FileExplorerState extends State<FileExplorer> {
         _selectedNodePath = entityPath;
       } else {
         await rust_fs.createFile(path: entityPath);
+        if (entityPath.endsWith('.md')) {
+          final defaultTitle = finalName.replaceAll('.md', '');
+          final defaultMetadata = FileMetadata.defaultMeta(defaultTitle);
+          final yamlStr = defaultMetadata.toYamlString();
+          await rust_fs.writeFileAsString(
+            path: entityPath,
+            content: '---\n$yamlStr\n---\n\n',
+          );
+        }
       }
       loadTree();
     } catch (e) {

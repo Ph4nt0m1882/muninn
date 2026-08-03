@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `scan_dir_recursive`
+// These functions are ignored because they are not marked as `pub`: `deobfuscate`, `obfuscate`, `scan_dir_recursive`
 
 Future<void> initWiki({required String rootPath, required String title}) =>
     RustLib.instance.api.crateApiFsInitWiki(rootPath: rootPath, title: title);

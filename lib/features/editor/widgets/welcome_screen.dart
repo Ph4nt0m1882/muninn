@@ -85,9 +85,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   // COLONNE GAUCHE : ACTIONS
                   Expanded(
                     flex: 4,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         Text(
                           'Démarrer',
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -125,6 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ],
                     ),
                   ),
+                ),
 
                   // SÉPARATEUR
                   Container(

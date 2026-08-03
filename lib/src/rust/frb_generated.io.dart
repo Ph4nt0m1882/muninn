@@ -3,9 +3,11 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/chat.dart';
 import 'api/fs.dart';
 import 'api/models.dart';
 import 'api/parser.dart';
+import 'api/rag.dart';
 import 'api/search.dart';
 import 'api/settings.dart';
 import 'api/simple.dart';
@@ -36,6 +38,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  ChatMessage dco_decode_box_autoadd_chat_message(dynamic raw);
+
+  @protected
+  ChatSession dco_decode_box_autoadd_chat_session(dynamic raw);
+
+  @protected
   CrowFile dco_decode_box_autoadd_crow_file(dynamic raw);
 
   @protected
@@ -48,6 +56,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
+  ChatMessage dco_decode_chat_message(dynamic raw);
+
+  @protected
+  ChatSession dco_decode_chat_session(dynamic raw);
+
+  @protected
+  ChunkResult dco_decode_chunk_result(dynamic raw);
+
+  @protected
   CrowFile dco_decode_crow_file(dynamic raw);
 
   @protected
@@ -57,6 +74,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DbHealthStatus dco_decode_db_health_status(dynamic raw);
 
   @protected
+  double dco_decode_f_64(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
@@ -64,6 +84,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<ChatMessage> dco_decode_list_chat_message(dynamic raw);
+
+  @protected
+  List<ChatSession> dco_decode_list_chat_session(dynamic raw);
+
+  @protected
+  List<ChunkResult> dco_decode_list_chunk_result(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -126,6 +155,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  ChatMessage sse_decode_box_autoadd_chat_message(SseDeserializer deserializer);
+
+  @protected
+  ChatSession sse_decode_box_autoadd_chat_session(SseDeserializer deserializer);
+
+  @protected
   CrowFile sse_decode_box_autoadd_crow_file(SseDeserializer deserializer);
 
   @protected
@@ -138,6 +173,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
+  ChatMessage sse_decode_chat_message(SseDeserializer deserializer);
+
+  @protected
+  ChatSession sse_decode_chat_session(SseDeserializer deserializer);
+
+  @protected
+  ChunkResult sse_decode_chunk_result(SseDeserializer deserializer);
+
+  @protected
   CrowFile sse_decode_crow_file(SseDeserializer deserializer);
 
   @protected
@@ -147,6 +191,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DbHealthStatus sse_decode_db_health_status(SseDeserializer deserializer);
 
   @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
@@ -154,6 +201,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<ChatMessage> sse_decode_list_chat_message(SseDeserializer deserializer);
+
+  @protected
+  List<ChatSession> sse_decode_list_chat_session(SseDeserializer deserializer);
+
+  @protected
+  List<ChunkResult> sse_decode_list_chunk_result(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -221,6 +277,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_chat_message(
+    ChatMessage self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_chat_session(
+    ChatSession self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_crow_file(
     CrowFile self,
     SseSerializer serializer,
@@ -239,6 +307,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_chat_message(ChatMessage self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chat_session(ChatSession self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chunk_result(ChunkResult self, SseSerializer serializer);
+
+  @protected
   void sse_encode_crow_file(CrowFile self, SseSerializer serializer);
 
   @protected
@@ -251,6 +328,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
@@ -258,6 +338,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_chat_message(
+    List<ChatMessage> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_chat_session(
+    List<ChatSession> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_chunk_result(
+    List<ChunkResult> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_prim_u_8_strict(

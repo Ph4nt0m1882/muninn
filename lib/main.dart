@@ -11,7 +11,11 @@ import 'package:munnin/features/navigation/navigation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/search.dart' as rust_search;
+import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
+import 'package:munnin/src/rust/api/chat.dart' as rust_chat;
 import 'package:munnin/features/settings/settings.dart';
+import 'package:munnin/features/settings/widgets/api_key_dialog.dart';
+import 'package:munnin/core/services/ai_service.dart';
 import 'package:munnin/features/editor/editor.dart';
 import 'package:munnin/features/explorer/explorer.dart';
 import 'package:munnin/core/commands/commands.dart';
@@ -30,7 +34,7 @@ Future<void> main() async {
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(1000, 700),
+      size: Size(1280, 800),
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden, // Cacher la barre native
@@ -108,6 +112,85 @@ class _MunninAppState extends State<MunninApp> {
         description: 'Ouvrir les paramètres d\'apparence',
         icon: Icons.palette,
         execute: _openThemeSettings,
+      ),
+    );
+
+    cmdManager.register(
+      AppCommand(
+        id: 'app.ai_settings',
+        title: 'Configuration IA (Clé API)',
+        description: 'Configurer Gemini et les fonctionnalités intelligentes',
+        icon: Icons.smart_toy,
+        execute: () {
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            ApiKeyDialog.show(context);
+          }
+        },
+      ),
+    );
+
+    cmdManager.register(
+      AppCommand(
+        id: 'ai.summarize',
+        title: 'AI: Résumer',
+        description: 'Générer un résumé du document actuel avec Google AI Studio',
+        icon: Icons.auto_awesome,
+        execute: () async {
+          final path = EditorManager.instance.activeFilePath;
+          if (path == null) return;
+          
+          try {
+            final content = await File(path).readAsString();
+            
+            if (content.trim().isEmpty) {
+              if (navigatorKey.currentContext != null) {
+                ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+                  const SnackBar(content: Text('Le document est vide.')),
+                );
+              }
+              return;
+            }
+
+            if (navigatorKey.currentContext != null) {
+              ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+                const SnackBar(content: Text('Génération du résumé en cours...')),
+              );
+            }
+
+            final summary = await AIService.instance.summarize(content);
+            
+            if (navigatorKey.currentContext != null) {
+              showDialog(
+                context: navigatorKey.currentContext!,
+                builder: (ctx) => AlertDialog(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.auto_awesome, color: Colors.purple),
+                      SizedBox(width: 8),
+                      Text('Résumé IA'),
+                    ],
+                  ),
+                  content: SingleChildScrollView(
+                    child: Text(summary),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Fermer'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } catch (e) {
+            if (navigatorKey.currentContext != null) {
+              ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+                SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+              );
+            }
+          }
+        },
       ),
     );
 
@@ -316,28 +399,82 @@ class _MunninAppState extends State<MunninApp> {
 
   Future<void> _reindexWiki(String path) async {
     final context = navigatorKey.currentContext;
+    if (context == null) return;
 
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Réindexation totale en cours... (via Rust)'),
+    final progressNotifier = ValueNotifier<double>(0.0);
+    final statusNotifier = ValueNotifier<String>('Préparation...');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(days: 365), // Reste ouvert pendant le process
+        content: ValueListenableBuilder<double>(
+          valueListenable: progressNotifier,
+          builder: (context, progress, _) {
+            return ValueListenableBuilder<String>(
+              valueListenable: statusNotifier,
+              builder: (context, status, _) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(status),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(value: progress),
+                  ],
+                );
+              },
+            );
+          },
         ),
-      );
-    }
+      ),
+    );
 
     try {
+      // 1. Indexation texte (FTS) via Rust (très rapide)
+      statusNotifier.value = 'Indexation classique (Recherche)...';
       await rust_search.rebuildIndex(wikiRoot: path);
 
-      if (context != null && context.mounted) {
+      // 2. Nettoyage de l'ancienne base vectorielle
+      statusNotifier.value = 'Nettoyage de la base vectorielle...';
+      await rust_rag.clearIndex(wikiRoot: path);
+
+      // 3. Indexation vectorielle (RAG) fichier par fichier pour le progrès
+      final dir = Directory(path);
+      if (await dir.exists()) {
+        final files = await dir.list(recursive: true).where((f) {
+          return f is File && 
+                 f.path.endsWith('.md') && 
+                 !f.path.contains('.git') && 
+                 !f.path.contains('.crow');
+        }).toList();
+
+        for (int i = 0; i < files.length; i++) {
+          final file = files[i] as File;
+          final fileName = file.uri.pathSegments.last;
+          statusNotifier.value = 'Vecteurs IA (${i + 1}/${files.length}): $fileName';
+          progressNotifier.value = (i + 1) / files.length;
+          
+          // Laisser le temps à l'UI de se mettre à jour
+          await Future.delayed(const Duration(milliseconds: 10));
+          
+          final content = await file.readAsString();
+          await rust_rag.indexFile(wikiRoot: path, filePath: file.path, content: content);
+        }
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Réindexation terminée avec succès !'),
+            content: Text('Réindexation totale terminée avec succès !'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
         );
       }
     } catch (e) {
-      if (context != null && context.mounted) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la réindexation: $e'),
@@ -539,6 +676,7 @@ class _MunninAppState extends State<MunninApp> {
     // Initialise la base de données de recherche pour ce wiki
     try {
       rust_search.initSearchDb(wikiRoot: path);
+      rust_chat.initChatDb(wikiRoot: path);
     } catch (e) {
       debugPrint("Erreur lors de l'initialisation de la base de données: $e");
     }
@@ -560,6 +698,14 @@ class _MunninAppState extends State<MunninApp> {
       title: 'Munnin Wiki',
       debugShowCheckedModeBanner: false,
       theme: themeData,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(0.95),
+          ),
+          child: child!,
+        );
+      },
       home: LayoutBuilder(
         builder: (context, constraints) {
           final isMobile =
@@ -598,12 +744,9 @@ class _MunninAppState extends State<MunninApp> {
                   onThemeToggle: _openThemeSettings,
                   onOpenEditor: _openEditor,
                   rightSidebar: _currentWikiPath != null
-                      ? FileExplorer(
-                          key: _fileExplorerKey,
-                          rootPath: _currentWikiPath!,
-                          onFileSelected: (path) {
-                            EditorManager.instance.openFile(path);
-                          },
+                      ? RightSidebar(
+                          wikiRoot: _currentWikiPath!,
+                          explorerKey: _fileExplorerKey,
                         )
                       : null,
                   child: _currentWikiPath == null

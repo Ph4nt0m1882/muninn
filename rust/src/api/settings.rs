@@ -4,9 +4,11 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(default)]
 pub struct AppSettings {
     pub theme_index: i32,
     pub recent_wikis: Vec<String>,
+    pub google_api_key: Option<String>,
 }
 
 /// Helper pour obtenir le chemin du fichier de configuration
@@ -52,6 +54,14 @@ fn save_settings(settings: &AppSettings) {
 pub fn save_theme(index: i32) {
     let mut settings = load_settings();
     settings.theme_index = index;
+    save_settings(&settings);
+}
+
+/// Sauvegarde la clé d'API Google
+#[flutter_rust_bridge::frb(sync)]
+pub fn save_google_api_key(key: String) {
+    let mut settings = load_settings();
+    settings.google_api_key = Some(key);
     save_settings(&settings);
 }
 

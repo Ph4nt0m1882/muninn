@@ -4,8 +4,10 @@ import 'package:munnin/core/utils/logger.dart';
 import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/models.dart';
 import 'package:munnin/src/rust/api/search.dart' as rust_search;
+import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
 
 import 'package:munnin/features/editor/models/opened_file.dart';
+import 'package:munnin/features/editor/models/file_metadata.dart';
 
 class EditorManager extends ChangeNotifier {
   static final EditorManager instance = EditorManager._internal();
@@ -41,14 +43,30 @@ class EditorManager extends ChangeNotifier {
     }
 
     try {
-      final content = await rust_fs.readFileAsString(path: path);
+      String content = await rust_fs.readFileAsString(path: path);
       final mode = path.toLowerCase().endsWith('.crow')
           ? EditorMode.settings
           : EditorMode.markdown;
+          
+      FileMetadata? metadata;
+      if (mode == EditorMode.markdown) {
+        final match = RegExp(r'^---\n([\s\S]*?)\n---').firstMatch(content);
+        final defaultTitle = path.split(RegExp(r'[/\\]')).last.replaceAll('.md', '');
+        if (match != null) {
+          final yamlContent = match.group(1)!;
+          metadata = FileMetadata.fromYaml(yamlContent, defaultTitle: defaultTitle);
+          // Strip the frontmatter from the content shown in the editor
+          content = content.substring(match.end).trimLeft();
+        } else {
+          metadata = FileMetadata.defaultMeta(defaultTitle);
+        }
+      }
+
       _openedFiles.add(
         OpenedFile(
           path: path,
           content: content,
+          metadata: metadata,
           openAnimation: animation,
           mode: mode,
         ),
@@ -262,17 +280,33 @@ class EditorManager extends ChangeNotifier {
 
   Future<void> _saveFileToDisk(OpenedFile openedFile) async {
     try {
+      String contentToSave = openedFile.content;
+      if (openedFile.mode == EditorMode.markdown && openedFile.metadata != null) {
+        final yamlStr = openedFile.metadata!.toYamlString();
+        contentToSave = '---\n$yamlStr\n---\n\n${openedFile.content}';
+      }
+
       await rust_fs.writeFileAsString(
         path: openedFile.path,
-        content: openedFile.content,
+        content: contentToSave,
       );
       openedFile.isDirty = false;
 
       if (openedFile.path.endsWith('.md')) {
+        // Indexation pour la recherche texte (FTS)
         rust_search.indexDocument(
           filePath: openedFile.path,
-          rawMarkdown: openedFile.content,
+          rawMarkdown: contentToSave,
         );
+
+        // Indexation vectorielle (RAG) si on a un wiki
+        if (wikiRoot != null) {
+          await rust_rag.indexFile(
+            wikiRoot: wikiRoot!,
+            filePath: openedFile.path,
+            content: contentToSave,
+          );
+        }
       }
 
       notifyListeners();
