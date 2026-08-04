@@ -10,6 +10,7 @@ pub struct ChatMessage {
     pub role: String, // "user" or "model"
     pub content: String,
     pub timestamp: i64,
+    pub sources: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -65,11 +66,15 @@ pub fn init_chat_db(wiki_root: String) -> Result<bool, String> {
             role TEXT NOT NULL,
             content TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
+            sources TEXT,
             FOREIGN KEY(session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
         )",
         [],
     )
     .map_err(|e| e.to_string())?;
+
+    // Migration in case the DB existed before we added sources
+    let _ = conn.execute("ALTER TABLE chat_messages ADD COLUMN sources TEXT", []);
 
     // Create the virtual table for embeddings (using 384 dimensions for all-MiniLM-L6-v2)
     conn.execute(
@@ -147,9 +152,14 @@ pub fn save_chat_message(wiki_root: String, message: ChatMessage) -> Result<bool
     let db_path = Path::new(&wiki_root).join(".crowchat");
     let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
+    let sources_json = match message.sources {
+        Some(s) => Some(serde_json::to_string(&s).unwrap_or_default()),
+        None => None,
+    };
+
     conn.execute(
-        "INSERT INTO chat_messages (id, session_id, role, content, timestamp) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![message.id, message.session_id, message.role, message.content, message.timestamp],
+        "INSERT INTO chat_messages (id, session_id, role, content, timestamp, sources) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![message.id, message.session_id, message.role, message.content, message.timestamp, sources_json],
     )
     .map_err(|e| e.to_string())?;
 
@@ -170,17 +180,20 @@ pub fn get_chat_messages(wiki_root: String, session_id: String) -> Result<Vec<Ch
     let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
     let mut stmt = conn
-        .prepare("SELECT id, session_id, role, content, timestamp FROM chat_messages WHERE session_id = ?1 ORDER BY timestamp ASC")
+        .prepare("SELECT id, session_id, role, content, timestamp, sources FROM chat_messages WHERE session_id = ?1 ORDER BY timestamp ASC")
         .map_err(|e| e.to_string())?;
     
     let iter = stmt
         .query_map(params![session_id], |row| {
+            let sources_str: Option<String> = row.get(5)?;
+            let sources = sources_str.and_then(|s| serde_json::from_str(&s).ok());
             Ok(ChatMessage {
                 id: row.get(0)?,
                 session_id: row.get(1)?,
                 role: row.get(2)?,
                 content: row.get(3)?,
                 timestamp: row.get(4)?,
+                sources,
             })
         })
         .map_err(|e| e.to_string())?;

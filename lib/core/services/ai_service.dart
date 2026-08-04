@@ -4,6 +4,14 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:munnin/src/rust/api/settings.dart';
 import 'package:munnin/src/rust/api/rag.dart';
 import 'package:munnin/core/utils/logger.dart';
+import 'dart:io';
+
+class ChatResult {
+  final String text;
+  final List<String> sources;
+
+  ChatResult(this.text, this.sources);
+}
 
 class AIService {
   static final AIService instance = AIService._internal();
@@ -117,7 +125,7 @@ class AIService {
   }
 
   /// Appelle l'API Gemini pour converser en utilisant l'historique
-  Future<String> chat(String message, List<Content> history, {String? actionPrefix, required String wikiRoot}) async {
+  Future<ChatResult> chat(String message, List<Content> history, {String? actionPrefix, required String wikiRoot}) async {
     final settings = loadSettings();
     final apiKey = settings.googleApiKey;
 
@@ -129,6 +137,7 @@ class AIService {
     var systemInstruction = await _buildSystemInstruction(actionPrefix);
     
     // 2. Recherche vectorielle (RAG) dans le wiki
+    List<String> sources = [];
     try {
       final searchResults = await searchSimilar(wikiRoot: wikiRoot, query: message, limit: BigInt.from(5));
       
@@ -137,6 +146,11 @@ class AIService {
         ragContext += "Voici des extraits du wiki de l'utilisateur qui pourraient t'aider à répondre:\n\n";
         for (var chunk in searchResults) {
           ragContext += "Fichier: ${chunk.filePath}\nExtrait:\n${chunk.chunkText}\n\n";
+          
+          final fileName = chunk.filePath.split(RegExp(r'[/\\]')).last;
+          if (!sources.contains(fileName)) {
+            sources.add(fileName);
+          }
         }
         ragContext += "--- FIN CONTEXTE WIKI ---\n";
         ragContext += "Note: Utilise ce contexte pour répondre à la question si c'est pertinent. Tu n'as accès qu'aux informations de ce wiki.\n";
@@ -161,7 +175,7 @@ class AIService {
     try {
       final chatSession = chatModel.startChat(history: history);
       final response = await chatSession.sendMessage(Content.text(message));
-      return response.text ?? "Aucune réponse générée.";
+      return ChatResult(response.text ?? "Aucune réponse générée.", sources);
     } catch (e) {
       AppLogger.e("Erreur de l'API Gemini (Chat) : $e");
       rethrow;

@@ -50,6 +50,7 @@ class ChatMessage {
   final String role;
   final String content;
   final PlatformInt64 timestamp;
+  final List<String>? sources;
 
   const ChatMessage({
     required this.id,
@@ -57,6 +58,7 @@ class ChatMessage {
     required this.role,
     required this.content,
     required this.timestamp,
+    this.sources,
   });
 
   @override
@@ -65,7 +67,8 @@ class ChatMessage {
       sessionId.hashCode ^
       role.hashCode ^
       content.hashCode ^
-      timestamp.hashCode;
+      timestamp.hashCode ^
+      sources.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -76,7 +79,8 @@ class ChatMessage {
           sessionId == other.sessionId &&
           role == other.role &&
           content == other.content &&
-          timestamp == other.timestamp;
+          timestamp == other.timestamp &&
+          sources == other.sources;
 }
 
 class ChatSession {

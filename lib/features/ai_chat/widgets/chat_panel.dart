@@ -206,14 +206,15 @@ class _ChatPanelState extends State<ChatPanel> {
       // On retire le dernier message car on va l'envoyer comme nouveau message dans la méthode chat()
       history.removeLast();
 
-      final responseText = await AIService.instance.chat(content, history, wikiRoot: widget.wikiRoot);
+      final result = await AIService.instance.chat(content, history, wikiRoot: widget.wikiRoot);
       
       final aiMessage = rust_chat.ChatMessage(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         sessionId: _currentSession!.id,
         role: 'model',
-        content: responseText,
+        content: result.text,
         timestamp: DateTime.now().millisecondsSinceEpoch,
+        sources: result.sources.isEmpty ? null : result.sources,
       );
 
       rust_chat.saveChatMessage(wikiRoot: widget.wikiRoot, message: aiMessage);
@@ -373,9 +374,35 @@ class _ChatPanelState extends State<ChatPanel> {
             bottomRight: Radius.circular(isUser ? 0 : 16),
           ),
         ),
-        child: isUser 
-            ? Text(message.content, style: TextStyle(color: theme.colorScheme.onPrimaryContainer))
-            : MarkdownRenderer(content: message.content),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            isUser 
+                ? Text(message.content, style: TextStyle(color: theme.colorScheme.onPrimaryContainer))
+                : MarkdownRenderer(content: message.content),
+            if (!isUser && message.sources != null && message.sources!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  Text("Sources :", style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  ...message.sources!.map((s) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: theme.dividerColor),
+                    ),
+                    child: Text(s, style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+                  )),
+                ],
+              ),
+            ]
+          ],
+        ),
       ),
     );
   }

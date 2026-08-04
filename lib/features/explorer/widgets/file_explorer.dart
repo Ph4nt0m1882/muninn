@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:munnin/core/utils/logger.dart';
 import 'package:munnin/features/editor/editor.dart';
@@ -420,27 +421,37 @@ class FileExplorerState extends State<FileExplorer> {
           Expanded(
             child: _visibleNodes.isEmpty
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: _visibleNodes.length,
-                    itemBuilder: (context, index) {
-                      final node = _visibleNodes[index];
-                      return ExplorerItem(
-                        node: node,
-                        isSelected: node.entity.path == _selectedNodePath,
-                        onTap: () {
-                          if (node.isDirectory) {
-                            _toggleDirectory(node);
-                          } else {
-                            setState(() {
-                              _selectedNodePath = node.entity.path;
-                            });
-                            widget.onFileSelected?.call(node.entity.path);
-                          }
+                : DragTarget<String>(
+                    onWillAcceptWithDetails: (details) {
+                      final source = details.data;
+                      return p.dirname(source) != widget.rootPath;
+                    },
+                    onAcceptWithDetails: (details) {
+                      _handleDrop(details.data, widget.rootPath);
+                    },
+                    builder: (context, candidateData, rejectedData) {
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: _visibleNodes.length,
+                        itemBuilder: (context, index) {
+                          final node = _visibleNodes[index];
+                          return ExplorerItem(
+                            node: node,
+                            isSelected: node.entity.path == _selectedNodePath,
+                            onTap: () {
+                              if (node.isDirectory) {
+                                _toggleDirectory(node);
+                              } else {
+                                setState(() {
+                                  _selectedNodePath = node.entity.path;
+                                });
+                                widget.onFileSelected?.call(node.entity.path);
+                              }
+                            },
+                            onSecondaryTap: (pos) => _showContextMenu(pos, node),
+                            onDroppedOn: (source) => _handleDrop(source, node.entity.path),
+                          );
                         },
-                        onSecondaryTap: (pos) => _showContextMenu(pos, node),
-                        onDroppedOn: (source) =>
-                            _handleDrop(source, node.entity.path),
                       );
                     },
                   ),
