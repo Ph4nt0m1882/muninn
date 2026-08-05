@@ -29,8 +29,10 @@ class LeftSidebar extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.folder_open),
             color: theme.colorScheme.onSurface,
-            tooltip: 'Fichiers',
-            onPressed: onOpenEditor,
+            tooltip: 'Ouvrir un Wiki',
+            onPressed: () {
+              CommandManager.instance.execute('wiki.open');
+            },
           ),
 
           const SizedBox(height: 16),
@@ -62,7 +64,9 @@ class LeftSidebar extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             color: theme.colorScheme.onSurface,
             tooltip: 'Paramètres',
-            onPressed: () {},
+            onPressed: () {
+              CommandManager.instance.execute('app.settings');
+            },
           ),
 
           const SizedBox(height: 24),

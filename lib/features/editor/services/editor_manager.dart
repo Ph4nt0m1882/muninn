@@ -5,6 +5,7 @@ import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/models.dart';
 import 'package:munnin/src/rust/api/search.dart' as rust_search;
 import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
+import 'package:munnin/core/modules/module_registry.dart';
 
 import 'package:munnin/features/editor/models/opened_file.dart';
 import 'package:munnin/features/editor/models/file_metadata.dart';
@@ -307,6 +308,15 @@ class EditorManager extends ChangeNotifier {
             content: contentToSave,
           );
         }
+      }
+
+      // Notification aux modules
+      for (var module in ModuleRegistry.instance.modules) {
+        module.onFileSaved(openedFile.path, contentToSave).catchError((e) {
+          if (kDebugMode) {
+            AppLogger.e("Erreur dans le module ${module.name} lors de la sauvegarde : $e");
+          }
+        });
       }
 
       notifyListeners();

@@ -15,6 +15,11 @@ import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
 import 'package:munnin/src/rust/api/chat.dart' as rust_chat;
 import 'package:munnin/features/settings/settings.dart';
 import 'package:munnin/features/settings/widgets/api_key_dialog.dart';
+import 'package:munnin/features/settings/widgets/app_settings_dialog.dart';
+import 'package:munnin/features/settings/services/settings_manager.dart';
+import 'package:munnin/core/utils/logger.dart';
+import 'package:munnin/core/modules/module_registry.dart';
+import 'package:munnin/core/modules/module_config_manager.dart';
 import 'package:munnin/core/services/ai_service.dart';
 import 'package:munnin/features/editor/editor.dart';
 import 'package:munnin/features/explorer/explorer.dart';
@@ -112,6 +117,21 @@ class _MunninAppState extends State<MunninApp> {
         description: 'Ouvrir les paramètres d\'apparence',
         icon: Icons.palette,
         execute: _openThemeSettings,
+      ),
+    );
+
+    cmdManager.register(
+      AppCommand(
+        id: 'app.settings',
+        title: 'Paramètres de l\'application',
+        description: 'Ouvrir les paramètres généraux',
+        icon: Icons.settings,
+        execute: () {
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            AppSettingsDialog.show(context);
+          }
+        },
       ),
     );
 
@@ -438,6 +458,25 @@ class _MunninAppState extends State<MunninApp> {
       statusNotifier.value = 'Nettoyage de la base vectorielle...';
       await rust_rag.clearIndex(wikiRoot: path);
 
+      // Injection du manuel système ligne par ligne dans le RAG
+      statusNotifier.value = 'Injection du manuel système...';
+      try {
+        final manualContent = await rootBundle.loadString('assets/templates/munnin_manual.txt');
+        final lines = manualContent.split('\n');
+        for (int i = 0; i < lines.length; i++) {
+          final line = lines[i].trim();
+          if (line.isNotEmpty) {
+            await rust_rag.indexFile(
+              wikiRoot: path,
+              filePath: '[Système] Notice Ligne ${i + 1}',
+              content: line,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Erreur lors de l\'injection du manuel: $e');
+      }
+
       // 3. Indexation vectorielle (RAG) fichier par fichier pour le progrès
       final dir = Directory(path);
       if (await dir.exists()) {
@@ -652,9 +691,28 @@ class _MunninAppState extends State<MunninApp> {
   }
 
   void _openThemeSettings() {
-    setState(() {
-      _isSettingsOpen = true;
-    });
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Paramètres d\'Apparence'),
+        content: SizedBox(
+          width: 800,
+          height: 600,
+          child: ThemeSelectionScreen(
+            initialIndex: _themeIndex,
+            onThemeSelected: _setTheme,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _closeThemeSettings() {
@@ -680,6 +738,15 @@ class _MunninAppState extends State<MunninApp> {
     } catch (e) {
       debugPrint("Erreur lors de l'initialisation de la base de données: $e");
     }
+
+    ModuleConfigManager.instance.loadConfig(path).then((_) {
+      // Informe les modules que le wiki est ouvert
+      for (var module in ModuleRegistry.instance.modules) {
+        module.onWikiOpened(path).catchError((e) {
+          debugPrint("Erreur lors de l'initialisation du module ${module.name}: $e");
+        });
+      }
+    });
 
     _loadInitialSettings(); // Rafraîchit l'historique
   }
@@ -756,17 +823,6 @@ class _MunninAppState extends State<MunninApp> {
                         )
                       : const MarkdownEditor(),
                 ),
-
-                // Couche 1 : Les Fenêtres Flottantes (In-App Windows)
-                if (_isSettingsOpen)
-                  DraggableWindow(
-                    title: 'Paramètres',
-                    onClose: _closeThemeSettings,
-                    child: ThemeSelectionScreen(
-                      initialIndex: _themeIndex,
-                      onThemeSelected: _setTheme,
-                    ),
-                  ),
               ],
             ),
           );

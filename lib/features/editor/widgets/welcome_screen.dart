@@ -29,7 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _openSettings() {
-    CommandManager.instance.execute('app.theme_settings');
+    CommandManager.instance.execute('app.settings');
   }
 
   @override

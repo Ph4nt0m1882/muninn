@@ -380,7 +380,7 @@ class _ChatPanelState extends State<ChatPanel> {
             isUser 
                 ? Text(message.content, style: TextStyle(color: theme.colorScheme.onPrimaryContainer))
                 : MarkdownRenderer(content: message.content),
-            if (!isUser && message.sources != null && message.sources!.isNotEmpty) ...[
+            if (!isUser && message.sources != null && message.sources!.where((s) => !s.startsWith('[Système]')).isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
@@ -389,7 +389,7 @@ class _ChatPanelState extends State<ChatPanel> {
                 runSpacing: 4,
                 children: [
                   Text("Sources :", style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  ...message.sources!.map((s) => Container(
+                  ...message.sources!.where((s) => !s.startsWith('[Système]')).map((s) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface,

@@ -7,8 +7,11 @@ import 'package:munnin/features/explorer/models/explorer_node.dart';
 import 'package:munnin/features/explorer/widgets/explorer_item.dart';
 import 'package:munnin/features/editor/services/editor_manager.dart';
 import 'package:munnin/features/editor/models/file_metadata.dart';
+import 'package:munnin/features/explorer/widgets/new_entity_dialog.dart';
 import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
 import 'package:munnin/src/rust/api/models.dart';
+import 'package:munnin/core/modules/module_registry.dart';
+import 'package:munnin/core/modules/module_config_manager.dart';
 
 class FileExplorer extends StatefulWidget {
   final String rootPath;
@@ -110,33 +113,15 @@ class FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _createNewEntity(bool isDirectory) async {
-    final nameController = TextEditingController();
-    final name = await showDialog<String>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isDirectory ? 'Nouveau dossier' : 'Nouveau fichier'),
-        content: TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            hintText: isDirectory ? 'Nom du dossier' : 'Nom du fichier',
-          ),
-          autofocus: true,
-          onSubmitted: (val) => Navigator.pop(context, val),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, nameController.text),
-            child: const Text('Créer'),
-          ),
-        ],
-      ),
+      builder: (context) => NewEntityDialog(isDirectory: isDirectory),
     );
 
-    if (name == null || name.trim().isEmpty) return;
+    if (result == null || result['name'] == null) return;
+    
+    final name = result['name'] as String;
+    if (name.trim().isEmpty) return;
 
     String finalName = name.trim();
     if (!isDirectory && !finalName.toLowerCase().endsWith('.md')) {
@@ -153,11 +138,53 @@ class FileExplorerState extends State<FileExplorer> {
       parentPath = selectedEntity.path;
     }
 
+    // Vérification des dossiers verrouillés par les modules
+    for (var module in ModuleRegistry.instance.modules) {
+      final lockedDirs = module.getLockedDirectories();
+      for (var lockedDir in lockedDirs) {
+        // Normaliser les chemins pour comparer
+        final normalizedLocked = p.normalize(p.join(widget.rootPath, lockedDir));
+        final normalizedParent = p.normalize(parentPath);
+        
+        if (p.isWithin(normalizedLocked, normalizedParent) || p.equals(normalizedLocked, normalizedParent)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Le module '${module.name}' empêche la création manuelle ici."),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+      }
+    }
+
     final entityPath = '$parentPath${Platform.pathSeparator}$finalName';
 
     try {
       if (isDirectory) {
         await rust_fs.createDirectory(path: entityPath);
+        
+        // Sauvegarde de la configuration si un module a été sélectionné
+        if (result['configData'] != null && result['moduleId'] != null) {
+          final moduleId = result['moduleId'] as String;
+          final relPath = entityPath
+              .replaceAll(widget.rootPath, '')
+              .replaceAll(r'\', '/')
+              .replaceFirst(RegExp(r'^/'), '');
+          
+          await ModuleConfigManager.instance.setConfigForPath(
+            relPath, 
+            moduleId, 
+            result['configData']
+          );
+          
+          // Prévenir le module que ce dossier vient d'être configuré
+          final module = ModuleRegistry.instance.modules.firstWhere((m) => m.id == moduleId);
+          await module.onFolderConfigured(widget.rootPath, relPath);
+        }
+
         // Ouvre et sélectionne le nouveau dossier
         _expandedState[entityPath] = true;
         _selectedNodePath = entityPath;
@@ -287,6 +314,18 @@ class FileExplorerState extends State<FileExplorer> {
       // Mise à jour de l'éditeur si ouvert
       EditorManager.instance.renameOpenedFile(node.entity.path, newPath);
 
+      if (node.isDirectory) {
+        final oldRelPath = node.entity.path
+            .replaceAll(widget.rootPath, '')
+            .replaceAll(r'\', '/')
+            .replaceFirst(RegExp(r'^/'), '');
+        final newRelPath = newPath
+            .replaceAll(widget.rootPath, '')
+            .replaceAll(r'\', '/')
+            .replaceFirst(RegExp(r'^/'), '');
+        await ModuleConfigManager.instance.renameConfigPath(oldRelPath, newRelPath);
+      }
+
       if (_selectedNodePath == node.entity.path) {
         _selectedNodePath = newPath;
       }
@@ -330,6 +369,15 @@ class FileExplorerState extends State<FileExplorer> {
     try {
       await rust_fs.deleteItem(path: node.entity.path);
       EditorManager.instance.closeFile(node.entity.path);
+      
+      if (node.isDirectory) {
+        final relPath = node.entity.path
+            .replaceAll(widget.rootPath, '')
+            .replaceAll(r'\', '/')
+            .replaceFirst(RegExp(r'^/'), '');
+        await ModuleConfigManager.instance.removeConfigForPath(relPath);
+      }
+      
       if (_selectedNodePath == node.entity.path) _selectedNodePath = null;
       loadTree();
     } catch (e) {

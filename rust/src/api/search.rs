@@ -347,12 +347,15 @@ pub fn rebuild_index(wiki_root: String) -> Result<bool, String> {
         .execute("DELETE FROM documents", [])
         .map_err(|e| e.to_string())?;
 
-    let walker = WalkDir::new(&wiki_root).into_iter().filter_entry(|e| {
-        !e.file_name()
-            .to_str()
-            .map(|s| s.starts_with('.'))
-            .unwrap_or(false)
-    });
+    let walker = WalkDir::new(&wiki_root)
+        .follow_links(true)
+        .into_iter()
+        .filter_entry(|e| {
+            !e.file_name()
+                .to_str()
+                .map(|s| s.starts_with('.'))
+                .unwrap_or(false)
+        });
 
     for entry in walker.filter_map(|e| e.ok()) {
         if entry.file_type().is_file() {

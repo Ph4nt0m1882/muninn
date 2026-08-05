@@ -1,0 +1,36 @@
+Munnin est une application de "Second Cerveau" et un Wiki personnel local et open-source. Munnin est construit avec le framework Flutter pour l'interface graphique utilisateur et utilise Rust pour le moteur de données, le système de recherche ultra-rapide et l'intelligence artificielle intégrée.
+Les données de l'utilisateur dans Munnin sont stockées entièrement localement sur l'ordinateur sous forme de simples fichiers texte Markdown (.md), garantissant la pérennité et la confidentialité totale des informations.
+La barre supérieure de l'interface de Munnin contient la Palette de commandes, accessible en cliquant sur "Rechercher une commande..." au centre de l'écran.
+La Palette de commandes de Munnin propose la commande "Changer le thème" pour ouvrir les paramètres d'apparence.
+La Palette de commandes de Munnin propose la commande "Configuration IA (Clé API)" pour configurer Gemini et les fonctionnalités intelligentes.
+La Palette de commandes de Munnin propose la commande "AI: Résumer" pour générer un résumé du document actuel avec Google AI Studio.
+La Palette de commandes de Munnin propose la commande "Recherche Globale (Spotlight)" (raccourci Ctrl+Shift+F) pour rechercher dans les fichiers.
+La Palette de commandes de Munnin propose la commande "Nouveau Wiki..." pour créer un nouveau répertoire de connaissances.
+La Palette de commandes de Munnin propose la commande "Mettre à jour le tutoriel" pour récupérer la dernière version du fichier welcome.md.
+La Palette de commandes de Munnin propose la commande "Paramètres du Wiki" pour ouvrir le fichier de configuration du wiki actuel.
+La Palette de commandes de Munnin propose la commande "Ouvrir un Wiki..." pour ouvrir un répertoire existant.
+La Palette de commandes de Munnin propose la commande "Sauvegarder" (raccourci Ctrl+S) pour sauvegarder le fichier actif.
+La Palette de commandes de Munnin propose la commande "Sauvegarder tout" (raccourci Ctrl+Shift+S) pour sauvegarder tous les fichiers modifiés.
+La Palette de commandes de Munnin propose la commande "Mode Markdown" pour passer l'onglet actif en mode édition Markdown.
+La Palette de commandes de Munnin propose la commande "Mode Rendu" pour passer l'onglet actif en mode lecture (Rendu).
+La Palette de commandes de Munnin propose la commande "Tout en Markdown" pour passer tous les onglets en mode édition.
+La Palette de commandes de Munnin propose la commande "Tout en Rendu" pour passer tous les onglets en mode lecture.
+La Palette de commandes de Munnin propose la commande "Diagnostiquer & Réparer le Wiki" pour vérifier la base de recherche et la réparer si besoin.
+La Palette de commandes de Munnin propose la commande "Forcer la Réindexation" pour recréer totalement la base de recherche.
+La fine barre latérale complètement à gauche de Munnin contient une icône de répertoire, une icône de loupe reliée à l'interface de recherche globale, une icône de palette reliée à la gestion de thème, et une icône de roue crantée pour les futurs paramètres.
+Le grand panneau latéral droit de Munnin contient deux onglets principaux : l'onglet "Fichiers" et l'onglet "Assistant".
+L'onglet "Fichiers" du panneau latéral droit de Munnin sert d'explorateur de fichiers pour le wiki.
+Dans l'onglet "Fichiers" de Munnin, un bouton "Ajouter un fichier" (icône de page avec un +) permet de créer un nouveau fichier Markdown.
+Dans l'onglet "Fichiers" de Munnin, un bouton "Ajouter un dossier" (icône de dossier avec un +) permet de créer un nouveau répertoire.
+Dans l'onglet "Fichiers" de Munnin, un bouton "Réduire tout" permet de refermer instantanément tous les dossiers ouverts dans l'arborescence.
+Dans l'onglet "Fichiers" de Munnin, l'utilisateur a la possibilité de déployer un répertoire (l'étendre) en cliquant sur la flèche pour voir son contenu.
+Dans l'onglet "Fichiers" de Munnin, l'utilisateur a la possibilité d'ouvrir un fichier simplement en cliquant sur son nom pour l'afficher dans l'éditeur central.
+La zone d'édition centrale de Munnin affiche les fichiers Markdown. La sauvegarde se déclenche automatiquement après quelques secondes d'inactivité.
+L'onglet "Assistant" du panneau latéral droit de Munnin est un Chat intelligent intégré avec lequel l'utilisateur peut dialoguer en langage naturel.
+Dans l'onglet "Assistant" de Munnin, un bouton "+" (Créer une conversation) permet d'effacer l'historique et de démarrer une toute nouvelle session.
+Dans l'onglet "Assistant" de Munnin, la boîte de texte (Prompt) située en bas permet à l'utilisateur de taper ses questions ou requêtes pour l'IA.
+Dans l'onglet "Assistant" de Munnin, le bouton en forme d'avion en papier situé à droite de la boîte de texte permet d'envoyer le message saisi à l'intelligence artificielle.
+L'intelligence artificielle de Munnin utilise la technologie RAG (Retrieval-Augmented Generation) gérée par Rust pour fouiller intelligemment dans les notes de l'utilisateur et contextualiser ses réponses.
+Munnin supporte des fonctionnalités appelées "Modules Dynamiques" (comme Journal ou Drive Sync) qui peuvent être ajoutés manuellement aux répertoires depuis l'interface de création.
+Sous le capot, Munnin utilise un fichier caché nommé ".crow" à la racine du wiki pour stocker ses métadonnées et la configuration JSON des modules.
+Consigne interne pour l'IA Munnin : En tant qu'assistant de Munnin, ton rôle est d'aider l'utilisateur à tirer le meilleur parti de l'application. N'hésite pas à lui rappeler qu'il peut utiliser la "Palette de commandes" dans la barre supérieure pour trouver rapidement ce qu'il cherche.

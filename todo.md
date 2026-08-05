@@ -1,27 +1,27 @@
-# Munnin - TODO & Roadmap
+# Munnin - Liste des choses à faire (To-Do)
 
-Ce document rassemble les prochaines évolutions majeures prévues pour le projet Munnin.
+## 🤖 Intelligence Artificielle (RAG & Agent)
+- [ ] **Historique des Conversations** : Implémenter la sauvegarde et l'interface pour parcourir, reprendre et gérer les anciennes sessions de chat.
+- [ ] **Capacités Agentiques (Tool Calling)** : Donner à l'IA la capacité d'agir sur l'application via des outils :
+  - Ouvrir une page du wiki spécifique sur demande.
+  - Modifier le thème de l'application.
+  - Modifier des paramètres internes si l'utilisateur le demande.
+- [ ] **Nouvelles Commandes Éditeur (Slash Commands)** :
+  - `/create_rules` : Générer ou appliquer des règles personnalisées.
+  - `/create_commandes` : Aide à la création de raccourcis ou de macros.
+  - `/create_mcp` : Configuration de connexions externes (Model Context Protocol).
 
-## 📝 1. L'Éditeur de Texte Riche (Priorité Haute)
-Amélioration de l'expérience d'écriture avec un véritable éditeur de texte.
-- [x] Remplacer le `TextField` standard par un éditeur supportant le texte riche (coloration syntaxique Markdown accomplie avec `re_editor`).
-- [x] Garantir une sauvegarde en pur Markdown (`.md`) tout en gardant une interface riche.
-- [x] Implémenter l'annulation/rétablissement (Undo/Redo via `Ctrl+Z` / `Ctrl+Y`) ainsi que les raccourcis de productivité (Gras, Italique, Auto-pairing).
+## 🕸️ Visualisation & Navigation
+- [ ] **Vue Graphe de Connaissances** : Implémenter la toile interactive reliant les notes entre elles.
+- [ ] **Filtres du Graphe** : Ajouter un système permettant de filtrer les nœuds du graphe en fonction des `#tags` présents dans les fichiers Markdown.
+- [ ] **Spotlight Intelligent (Ctrl+Shift+F)** : Afficher les fichiers récemment ouverts/modifiés par défaut lors de l'ouverture de la barre de recherche globale.
 
-## 🔍 2. Moteur de Recherche Globale
-Permettre de retrouver ses connaissances instantanément.
-- [x] Connecter la "Command Palette" (`Ctrl+K`) à un véritable moteur de recherche textuelle.
-- [x] Créer une fonction Rust optimisée pour lire et chercher (Regex) à haute vitesse dans tous les fichiers `.md` du dossier du wiki.
-- [x] Afficher les résultats avec mise en surbrillance du texte pertinent directement depuis l'interface Flutter.
-- [ ] (Long terme) Implémenter un modèle d'Embeddings local en Rust pour la "Smart Research" (recherche vectorielle et sémantique de type RAG).
+## 📅 Modules Dynamiques
+- [ ] **Vue Calendrier (Module Journal)** : Ajouter un widget calendrier dans la barre latérale pour visualiser les notes journalières existantes et créer celles manquantes d'un simple clic sur une date.
 
-## 🔗 3. Système de Liens Wiki & Backlinks
-Transformer les notes isolées en un réseau de connaissances connecté.
-- [x] Permettre la création de liens internes avec la syntaxe `[[Nom de la note]]`.
-- [x] Gérer le clic sur ces liens pour ouvrir l'onglet correspondant (ou créer le fichier s'il n'existe pas encore).
-- [ ] (Optionnel) Implémenter un panneau "Backlinks" pour voir quelles autres notes pointent vers la note actuellement ouverte.
-- [ ] (Long terme) Créer une vue "Graphe" globale des interconnexions (style Obsidian).
-
-## 🛠 4. Améliorations de l'Architecture et du Pont Rust
-- [ ] Déplacer les opérations de création/suppression de fichiers de Dart vers le backend Rust pour centraliser la sécurité et la logique métier de la gestion de fichiers (via `flutter_rust_bridge`).
-- [ ] Intégrer un système de logs (en Dart et en Rust) pour arrêter l'usage des simples `print()` en développement.
+## 🔄 Import / Export
+- [ ] **Fonction d'Importation** :
+  - Depuis **OneNote**.
+  - Depuis **ZIM Desktop Wiki**.
+  - *Option :* Importer comme un tout nouveau Wiki ou comme un sous-dossier d'un Wiki existant.
+- [ ] **Fonction d'Exportation** : Possibilité d'exporter une note (ou un dossier complet) en PDF ou HTML pour faciliter le partage.
