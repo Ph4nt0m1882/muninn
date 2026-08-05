@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1936808522;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1342346934;
 
 // Section: executor
 
@@ -274,6 +274,38 @@ fn wire__crate__api__models__crow_metadata_default_impl(
                     Ok(output_ok)
                 })())
             }
+        },
+    )
+}
+fn wire__crate__api__chat__delete_chat_session_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "delete_chat_session",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_wiki_root = <String>::sse_decode(&mut deserializer);
+            let api_session_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, String>((move || {
+                let output_ok =
+                    crate::api::chat::delete_chat_session(api_wiki_root, api_session_id)?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -866,6 +898,42 @@ fn wire__crate__api__search__rebuild_index_impl(
                     Ok(output_ok)
                 })())
             }
+        },
+    )
+}
+fn wire__crate__api__chat__rename_chat_session_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "rename_chat_session",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_wiki_root = <String>::sse_decode(&mut deserializer);
+            let api_session_id = <String>::sse_decode(&mut deserializer);
+            let api_new_title = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, String>((move || {
+                let output_ok = crate::api::chat::rename_chat_session(
+                    api_wiki_root,
+                    api_session_id,
+                    api_new_title,
+                )?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -1713,29 +1781,29 @@ fn pde_ffi_dispatcher_primary_impl(
         7 => {
             wire__crate__api__models__crow_metadata_default_impl(port, ptr, rust_vec_len, data_len)
         }
-        8 => wire__crate__api__fs__delete_item_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__parser__delta_to_markdown_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__rag__index_file_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__rag__init_embedder_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__fs__init_wiki_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__parser__markdown_to_delta_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__fs__read_anchor_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__fs__read_file_as_string_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__fs__read_page_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__search__rebuild_index_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__fs__rename_item_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__fs__scan_directory_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__rag__search_similar_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__models__text_attributes_default_impl(
+        9 => wire__crate__api__fs__delete_item_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__parser__delta_to_markdown_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__rag__index_file_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__rag__init_embedder_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__fs__init_wiki_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__parser__markdown_to_delta_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__fs__read_anchor_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__fs__read_file_as_string_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__fs__read_page_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__search__rebuild_index_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__fs__rename_item_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__fs__scan_directory_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__rag__search_similar_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__models__text_attributes_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__api__fs__write_anchor_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__fs__write_file_as_string_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__fs__write_page_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__fs__write_anchor_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__fs__write_file_as_string_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__fs__write_page_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1750,18 +1818,20 @@ fn pde_ffi_dispatcher_sync_impl(
     match func_id {
         1 => wire__crate__api__settings__add_recent_wiki_impl(ptr, rust_vec_len, data_len),
         3 => wire__crate__api__search__check_db_health_impl(ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__chat__get_chat_messages_impl(ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__chat__get_chat_sessions_impl(ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__search__index_document_impl(ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__chat__init_chat_db_impl(ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__search__init_search_db_impl(ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__settings__load_settings_impl(ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__chat__save_chat_message_impl(ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__chat__save_chat_session_impl(ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__settings__save_google_api_key_impl(ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__settings__save_theme_impl(ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__search__search_documents_impl(ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__chat__delete_chat_session_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__chat__get_chat_messages_impl(ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__chat__get_chat_sessions_impl(ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__search__index_document_impl(ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__chat__init_chat_db_impl(ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__search__init_search_db_impl(ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__settings__load_settings_impl(ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__chat__rename_chat_session_impl(ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__chat__save_chat_message_impl(ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__chat__save_chat_session_impl(ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__settings__save_google_api_key_impl(ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__settings__save_theme_impl(ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__search__search_documents_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

@@ -1,7 +1,7 @@
 # Munnin - Liste des choses à faire (To-Do)
 
 ## 🤖 Intelligence Artificielle (RAG & Agent)
-- [ ] **Historique des Conversations** : Implémenter la sauvegarde et l'interface pour parcourir, reprendre et gérer les anciennes sessions de chat.
+- [x] **Historique des Conversations** : Implémenter la sauvegarde et l'interface pour parcourir, reprendre et gérer les anciennes sessions de chat.
 - [ ] **Capacités Agentiques (Tool Calling)** : Donner à l'IA la capacité d'agir sur l'application via des outils :
   - Ouvrir une page du wiki spécifique sur demande.
   - Modifier le thème de l'application.

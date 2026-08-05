@@ -26,6 +26,24 @@ bool saveChatSession({
 List<ChatSession> getChatSessions({required String wikiRoot}) =>
     RustLib.instance.api.crateApiChatGetChatSessions(wikiRoot: wikiRoot);
 
+/// Supprime une session et tous ses messages associés
+bool deleteChatSession({required String wikiRoot, required String sessionId}) =>
+    RustLib.instance.api.crateApiChatDeleteChatSession(
+      wikiRoot: wikiRoot,
+      sessionId: sessionId,
+    );
+
+/// Renomme une session
+bool renameChatSession({
+  required String wikiRoot,
+  required String sessionId,
+  required String newTitle,
+}) => RustLib.instance.api.crateApiChatRenameChatSession(
+  wikiRoot: wikiRoot,
+  sessionId: sessionId,
+  newTitle: newTitle,
+);
+
 /// Sauvegarde un message
 bool saveChatMessage({
   required String wikiRoot,

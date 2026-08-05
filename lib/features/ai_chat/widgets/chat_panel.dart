@@ -161,6 +161,126 @@ class _ChatPanelState extends State<ChatPanel> {
     }
   }
 
+  void _showHistoryDialog() {
+    final theme = Theme.of(context);
+    List<rust_chat.ChatSession> sessions = [];
+    try {
+      sessions = rust_chat.getChatSessions(wikiRoot: widget.wikiRoot);
+    } catch (e) {
+      debugPrint("Erreur chargement historique: $e");
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Historique des conversations'),
+              content: SizedBox(
+                width: 450,
+                height: 500,
+                child: sessions.isEmpty
+                    ? const Center(child: Text("Aucune conversation passée."))
+                    : ListView.builder(
+                        itemCount: sessions.length,
+                        itemBuilder: (context, index) {
+                          final session = sessions[index];
+                          final date = DateTime.fromMillisecondsSinceEpoch(session.updatedAt);
+                          final formattedDate = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                          
+                          return ListTile(
+                            title: Text(session.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            subtitle: Text(formattedDate),
+                            leading: const Icon(Icons.chat_bubble_outline),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'rename') {
+                                  final controller = TextEditingController(text: session.title);
+                                  final newName = await showDialog<String>(
+                                    context: ctx,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Renommer la conversation'),
+                                      content: TextField(
+                                        controller: controller,
+                                        autofocus: true,
+                                        decoration: const InputDecoration(hintText: 'Nouveau nom'),
+                                      ),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+                                        TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('Enregistrer')),
+                                      ],
+                                    ),
+                                  );
+                                  
+                                  if (newName != null && newName.trim().isNotEmpty) {
+                                    try {
+                                      rust_chat.renameChatSession(wikiRoot: widget.wikiRoot, sessionId: session.id, newTitle: newName.trim());
+                                      setDialogState(() {
+                                        sessions = rust_chat.getChatSessions(wikiRoot: widget.wikiRoot);
+                                      });
+                                    } catch (e) {
+                                      debugPrint("Erreur renommage: $e");
+                                    }
+                                  }
+                                } else if (value == 'delete') {
+                                  try {
+                                    rust_chat.deleteChatSession(wikiRoot: widget.wikiRoot, sessionId: session.id);
+                                    setDialogState(() {
+                                      sessions.removeWhere((s) => s.id == session.id);
+                                    });
+                                    if (_currentSession?.id == session.id) {
+                                      setState(() {
+                                        _currentSession = null;
+                                        _messages = [];
+                                      });
+                                    }
+                                  } catch (e) {
+                                    debugPrint("Erreur suppression: $e");
+                                  }
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'rename',
+                                  child: Row(children: [Icon(Icons.edit, size: 18), SizedBox(width: 8), Text('Renommer')]),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(children: [Icon(Icons.delete, size: 18, color: Colors.red), SizedBox(width: 8), Text('Supprimer', style: TextStyle(color: Colors.red))]),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              setState(() {
+                                _currentSession = session;
+                                try {
+                                  _messages = rust_chat.getChatMessages(wikiRoot: widget.wikiRoot, sessionId: session.id);
+                                } catch (e) {
+                                  _messages = [];
+                                  debugPrint("Erreur chargement messages: $e");
+                                }
+                              });
+                              Navigator.of(ctx).pop();
+                              _scrollToBottom();
+                            },
+                          );
+                        },
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Fermer'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
     
@@ -277,6 +397,11 @@ class _ChatPanelState extends State<ChatPanel> {
                   ),
                 ),
                 const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.history),
+                  tooltip: 'Historique des conversations',
+                  onPressed: _showHistoryDialog,
+                ),
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: 'Nouvelle conversation',

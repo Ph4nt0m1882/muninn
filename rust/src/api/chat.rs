@@ -146,6 +146,36 @@ pub fn get_chat_sessions(wiki_root: String) -> Result<Vec<ChatSession>, String> 
     Ok(sessions)
 }
 
+/// Supprime une session et tous ses messages associés
+#[flutter_rust_bridge::frb(sync)]
+pub fn delete_chat_session(wiki_root: String, session_id: String) -> Result<bool, String> {
+    let db_path = Path::new(&wiki_root).join(".crowchat");
+    let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM chat_sessions WHERE id = ?1",
+        params![session_id],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(true)
+}
+
+/// Renomme une session
+#[flutter_rust_bridge::frb(sync)]
+pub fn rename_chat_session(wiki_root: String, session_id: String, new_title: String) -> Result<bool, String> {
+    let db_path = Path::new(&wiki_root).join(".crowchat");
+    let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "UPDATE chat_sessions SET title = ?1, updated_at = ?2 WHERE id = ?3",
+        params![new_title, chrono::Utc::now().timestamp_millis(), session_id],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(true)
+}
+
 /// Sauvegarde un message
 #[flutter_rust_bridge::frb(sync)]
 pub fn save_chat_message(wiki_root: String, message: ChatMessage) -> Result<bool, String> {
