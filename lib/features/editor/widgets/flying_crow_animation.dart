@@ -4,8 +4,8 @@ import 'dart:math';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
-import 'package:munnin/core/theme/theme_manager.dart';
-import 'package:munnin/features/editor/widgets/crow_video_data.dart';
+import 'package:muninn/core/theme/theme_manager.dart';
+import 'package:muninn/features/editor/widgets/crow_video_data.dart';
 
 class FlyingCrowAnimation extends StatefulWidget {
   final Offset startPos;

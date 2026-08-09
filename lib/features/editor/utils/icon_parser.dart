@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/editor/utils/icon_list.dart';
+import 'package:muninn/features/editor/utils/icon_list.dart';
 
 /// Parse une chaîne d'icône (ex: 'play', 'gitea', 'info') en IconData
 IconData parseIcon(String iconStr, {IconData fallback = Icons.info}) {

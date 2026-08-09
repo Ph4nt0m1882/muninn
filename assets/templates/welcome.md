@@ -3,14 +3,14 @@ title: "welcome"
 created: "2024-01-01"
 tags: ["tutoriel", "systeme"]
 status: "system"
-description: "Fichier système tutoriel de Munnin. Ce fichier n'appartient pas à l'utilisateur, c'est un guide généré automatiquement par l'application pour expliquer le fonctionnement du Markdown enrichi."
+description: "Fichier système tutoriel de Muninn. Ce fichier n'appartient pas à l'utilisateur, c'est un guide généré automatiquement par l'application pour expliquer le fonctionnement du Markdown enrichi."
 ---
 
-# Bienvenue dans Munnin ! 🐦‍⬛
+# Bienvenue dans Muninn ! 🐦‍⬛
 
-Votre nouvelle base de connaissances est prête. Munnin n'est pas un simple éditeur Markdown, c'est un environnement **interactif** et **enrichi**.
+Votre nouvelle base de connaissances est prête. Muninn n'est pas un simple éditeur Markdown, c'est un environnement **interactif** et **enrichi**.
 
-Ce document est une **vitrine exhaustive** de tout ce que vous pouvez accomplir ici. Que vous soyez un parfait débutant en Markdown ou un expert cherchant à utiliser les fonctionnalités exclusives de Munnin, ce guide vous expliquera la syntaxe dans les moindres détails.
+Ce document est une **vitrine exhaustive** de tout ce que vous pouvez accomplir ici. Que vous soyez un parfait débutant en Markdown ou un expert cherchant à utiliser les fonctionnalités exclusives de Muninn, ce guide vous expliquera la syntaxe dans les moindres détails.
 
 ---
 
@@ -106,13 +106,13 @@ Idéal pour citer quelqu'un ou mettre un paragraphe en retrait. Utilisez le chev
 
 ---
 
-## 3. Les Super-Pouvoirs de Munnin ✨ (Exclusivités)
+## 3. Les Super-Pouvoirs de Muninn ✨ (Exclusivités)
 
-Munnin modifie et améliore le comportement standard du Markdown pour le rendre interactif.
+Muninn modifie et améliore le comportement standard du Markdown pour le rendre interactif.
 
 ### 3.1. Listes de tâches interactives (Checkboxes)
 Dans un Markdown classique, on écrit une tâche comme ceci : `- [ ] Tâche à faire`. 
-Dans Munnin, vos listes de tâches ont **4 états différents** et peuvent être modifiées directement à la souris depuis la vue de lecture ! Le fichier est sauvegardé silencieusement.
+Dans Muninn, vos listes de tâches ont **4 états différents** et peuvent être modifiées directement à la souris depuis la vue de lecture ! Le fichier est sauvegardé silencieusement.
 
 ```markdown
 - [ ] **Tâche vide** : Essayez de faire un clic gauche !
@@ -128,7 +128,7 @@ Dans Munnin, vos listes de tâches ont **4 états différents** et peuvent être
 - [x] Tâche annulée
 
 ### 3.2. Blocs de Code et Mode Édition `{edit}`
-Pour insérer du code, on utilise trois backticks `` ` ``. Munnin détecte le langage pour la coloration syntaxique.
+Pour insérer du code, on utilise trois backticks `` ` ``. Muninn détecte le langage pour la coloration syntaxique.
 **Nouveauté :** Ajoutez `{edit}` à côté du nom du langage pour transformer le bloc de code en une zone de texte modifiable !
 
 ```markdown
@@ -148,7 +148,7 @@ def hello():
 ```
 
 ### 3.3. Admonitions et Alertes GitHub
-Munnin supporte les blocs d'alerte. Écrivez une citation `>` suivie de `[!TYPE]`.
+Muninn supporte les blocs d'alerte. Écrivez une citation `>` suivie de `[!TYPE]`.
 
 ```markdown
 > [!NOTE]
@@ -194,14 +194,14 @@ Pour lier vos notes entre elles, plus besoin des longs chemins absolus. Utilisez
 ```
 
 ### 3.6. Gestionnaire d'Images Local (Double Bang `!!`)
-Munnin est conçu pour être un wiki 100% portable et déconnecté. Si vous utilisez deux points d'exclamation `!![alt](url)` avec un lien Web ou un chemin absolu vers votre disque dur, **Munnin va automatiquement télécharger l'image** !
+Muninn est conçu pour être un wiki 100% portable et déconnecté. Si vous utilisez deux points d'exclamation `!![alt](url)` avec un lien Web ou un chemin absolu vers votre disque dur, **Muninn va automatiquement télécharger l'image** !
 
 L'image sera copiée dans un dossier caché `.assets/` juste à côté de votre document actuel, et le lien se mettra à jour tout seul pour pointer vers cette image locale de façon relative. Ainsi, votre wiki reste parfaitement transportable sans jamais casser les liens !
 
 ```markdown
 !![Logo Dart](https://raw.githubusercontent.com/dart-lang/logos/main/logos/dart/logo.png)
 ```
-*(Basculez en mode lecture pour voir Munnin télécharger et afficher ce logo localement)*
+*(Basculez en mode lecture pour voir Muninn télécharger et afficher ce logo localement)*
 
 ### 3.7. Notes de Bas de Page (Footnotes)
 Ajoutez des références dans votre texte en utilisant `[^1]`, puis définissez-les à la fin du document.
@@ -213,7 +213,7 @@ Voici une affirmation très intéressante.[^1]
 ```
 
 ### 3.8. Formules Mathématiques (LaTeX)
-Munnin intègre un parseur puissant pour afficher de belles formules mathématiques en utilisant la syntaxe LaTeX classique.
+Muninn intègre un parseur puissant pour afficher de belles formules mathématiques en utilisant la syntaxe LaTeX classique.
 
 ```markdown
 - Formule en ligne : La limite est $\lim_{x \to 0} \frac{\sin(x)}{x} = 1$ !
@@ -229,9 +229,9 @@ $$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
 ---
 
 ## 4. Sélecteur d'Icônes (Icon Picker)
-Pour vous aider à personnaliser vos documents (et vos Admonitions Personnalisées), Munnin intègre un sélecteur de milliers d'icônes (Lucide et Simple Icons).
+Pour vous aider à personnaliser vos documents (et vos Admonitions Personnalisées), Muninn intègre un sélecteur de milliers d'icônes (Lucide et Simple Icons).
 - Cliquez sur l'icône **😃** dans la barre d'outils au-dessus de l'éditeur ou utilisez `Ctrl + Maj + I`.
 - Double-cliquez sur une icône pour l'insérer !
 
 ---
-*Maintenant, c'est à vous de jouer ! Explorez, écrivez et laissez Munnin vous aider à bâtir votre cerveau numérique.*
+*Maintenant, c'est à vous de jouer ! Explorez, écrivez et laissez Muninn vous aider à bâtir votre cerveau numérique.*

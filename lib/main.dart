@@ -3,31 +3,31 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:munnin/src/rust/frb_generated.dart';
-import 'package:munnin/src/rust/api/settings.dart';
-import 'package:munnin/core/theme/theme.dart';
-import 'package:munnin/core/theme/watermark_background.dart';
-import 'package:munnin/features/navigation/navigation.dart';
+import 'package:muninn/src/rust/frb_generated.dart';
+import 'package:muninn/src/rust/api/settings.dart';
+import 'package:muninn/core/theme/theme.dart';
+import 'package:muninn/core/theme/watermark_background.dart';
+import 'package:muninn/features/navigation/navigation.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/src/rust/api/search.dart' as rust_search;
-import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
-import 'package:munnin/src/rust/api/chat.dart' as rust_chat;
-import 'package:munnin/features/settings/settings.dart';
-import 'package:munnin/features/settings/widgets/api_key_dialog.dart';
-import 'package:munnin/features/settings/widgets/app_settings_dialog.dart';
-import 'package:munnin/features/settings/widgets/ai_settings_dialog.dart';
-import 'package:munnin/features/settings/services/settings_manager.dart';
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/core/modules/module_registry.dart';
-import 'package:munnin/core/modules/module_config_manager.dart';
-import 'package:munnin/core/services/ai_service.dart';
-import 'package:munnin/features/editor/editor.dart';
-import 'package:munnin/features/explorer/explorer.dart';
-import 'package:munnin/core/commands/commands.dart';
-import 'package:munnin/features/home/widgets/spotlight_search.dart'
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/src/rust/api/search.dart' as rust_search;
+import 'package:muninn/src/rust/api/rag.dart' as rust_rag;
+import 'package:muninn/src/rust/api/chat.dart' as rust_chat;
+import 'package:muninn/features/settings/settings.dart';
+import 'package:muninn/features/settings/widgets/api_key_dialog.dart';
+import 'package:muninn/features/settings/widgets/app_settings_dialog.dart';
+import 'package:muninn/features/settings/widgets/ai_settings_dialog.dart';
+import 'package:muninn/features/settings/services/settings_manager.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/core/modules/module_registry.dart';
+import 'package:muninn/core/modules/module_config_manager.dart';
+import 'package:muninn/core/services/ai_service.dart';
+import 'package:muninn/features/editor/editor.dart';
+import 'package:muninn/features/explorer/explorer.dart';
+import 'package:muninn/core/commands/commands.dart';
+import 'package:muninn/features/home/widgets/spotlight_search.dart'
     as import_spotlight;
-import 'package:munnin/features/navigation/widgets/top_bar_search.dart'
+import 'package:muninn/features/navigation/widgets/top_bar_search.dart'
     as import_top_bar;
 import 'package:window_manager/window_manager.dart';
 
@@ -52,19 +52,19 @@ Future<void> main() async {
     });
   }
 
-  runApp(const MunninApp());
+  runApp(const MuninnApp());
 }
 
-class MunninApp extends StatefulWidget {
+class MuninnApp extends StatefulWidget {
   static final ValueNotifier<int> themeNotifier = ValueNotifier(0);
 
-  const MunninApp({super.key});
+  const MuninnApp({super.key});
 
   @override
-  State<MunninApp> createState() => _MunninAppState();
+  State<MuninnApp> createState() => _MuninnAppState();
 }
 
-class _MunninAppState extends State<MunninApp> {
+class _MuninnAppState extends State<MuninnApp> {
   int _themeIndex = 0; // 0 = Light, 1 = Dark, etc.
   bool _isSettingsOpen = false;
   String? _currentWikiPath; // Stocke le chemin du wiki ouvert
@@ -78,18 +78,18 @@ class _MunninAppState extends State<MunninApp> {
     _loadInitialSettings();
     _registerCommands();
     HardwareKeyboard.instance.addHandler(_handleGlobalKeys);
-    MunninApp.themeNotifier.addListener(_onThemeNotifierChanged);
+    MuninnApp.themeNotifier.addListener(_onThemeNotifierChanged);
   }
 
   void _onThemeNotifierChanged() {
     setState(() {
-      _themeIndex = MunninApp.themeNotifier.value;
+      _themeIndex = MuninnApp.themeNotifier.value;
     });
   }
 
   @override
   void dispose() {
-    MunninApp.themeNotifier.removeListener(_onThemeNotifierChanged);
+    MuninnApp.themeNotifier.removeListener(_onThemeNotifierChanged);
     HardwareKeyboard.instance.removeHandler(_handleGlobalKeys);
     super.dispose();
   }
@@ -472,7 +472,7 @@ class _MunninAppState extends State<MunninApp> {
       // Injection du manuel système ligne par ligne dans le RAG
       statusNotifier.value = 'Injection du manuel système...';
       try {
-        final manualContent = await rootBundle.loadString('assets/templates/munnin_manual.txt');
+        final manualContent = await rootBundle.loadString('assets/templates/muninn_manual.txt');
         final lines = manualContent.split('\n');
         for (int i = 0; i < lines.length; i++) {
           final line = lines[i].trim();
@@ -682,7 +682,7 @@ class _MunninAppState extends State<MunninApp> {
 
   void _loadInitialSettings() {
     final settings = loadSettings();
-    MunninApp.themeNotifier.value = settings.themeIndex;
+    MuninnApp.themeNotifier.value = settings.themeIndex;
     setState(() {
       _themeIndex = settings.themeIndex;
       // Ne garde que les dossiers qui existent encore sur le disque
@@ -696,7 +696,7 @@ class _MunninAppState extends State<MunninApp> {
   }
 
   void _setTheme(int index) {
-    MunninApp.themeNotifier.value = index;
+    MuninnApp.themeNotifier.value = index;
     saveTheme(index: index);
   }
 
@@ -772,7 +772,7 @@ class _MunninAppState extends State<MunninApp> {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Munnin Wiki',
+      title: 'Muninn Wiki',
       debugShowCheckedModeBanner: false,
       theme: themeData,
       builder: (context, child) {

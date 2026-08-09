@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:munnin/core/theme/theme.dart';
-import 'package:munnin/core/theme/watermark_background.dart';
+import 'package:muninn/core/theme/theme.dart';
+import 'package:muninn/core/theme/watermark_background.dart';
 
 const List<String> availableSyntaxThemes = [
   'atom-one-dark',

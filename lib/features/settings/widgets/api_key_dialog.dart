@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/src/rust/api/settings.dart';
+import 'package:muninn/src/rust/api/settings.dart';
 
 class ApiKeyDialog extends StatefulWidget {
   const ApiKeyDialog({super.key});

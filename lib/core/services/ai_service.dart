@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:munnin/src/rust/api/settings.dart';
-import 'package:munnin/src/rust/api/rag.dart';
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/core/services/mcp_service.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
+import 'package:muninn/src/rust/api/settings.dart';
+import 'package:muninn/src/rust/api/rag.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/core/services/mcp_service.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -18,13 +18,13 @@ class ChatResult {
   ChatResult(this.text, this.sources);
 }
 
-String getGlobalMunninDir() {
+String getGlobalMuninnDir() {
   if (Platform.isWindows) {
-    return p.join(Platform.environment['APPDATA'] ?? '', 'Munnin');
+    return p.join(Platform.environment['APPDATA'] ?? '', 'Muninn');
   } else if (Platform.isLinux) {
-    return p.join(Platform.environment['HOME'] ?? '', '.config', 'munnin');
+    return p.join(Platform.environment['HOME'] ?? '', '.config', 'muninn');
   } else if (Platform.isMacOS) {
-    return p.join(Platform.environment['HOME'] ?? '', 'Library', 'Application Support', 'Munnin');
+    return p.join(Platform.environment['HOME'] ?? '', 'Library', 'Application Support', 'Muninn');
   }
   return '';
 }
@@ -421,14 +421,14 @@ class AIService {
               executedTools.add("Renommer $oldPath");
             }
             else if (cmdId == 'create_rule') {
-              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMunninDir() : wikiRoot, '.munnin', 'rules', '${args['name']}.md');
+              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMuninnDir() : wikiRoot, '.muninn', 'rules', '${args['name']}.md');
               final file = File(absolutePath);
               if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
               file.writeAsStringSync(args['content'] as String);
               executedTools.add("Créer Règle ${args['name']}");
             }
             else if (cmdId == 'create_command') {
-              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMunninDir() : wikiRoot, '.munnin', 'commands', args['name'] as String);
+              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMuninnDir() : wikiRoot, '.muninn', 'commands', args['name'] as String);
               final dir = Directory(absolutePath);
               if (!dir.existsSync()) dir.createSync(recursive: true);
               File(p.join(absolutePath, 'prompt.md')).writeAsStringSync(args['content'] as String);
@@ -442,7 +442,7 @@ class AIService {
               final String requirementsContent = args['requirements_content'] as String;
               final bool isGlobal = args['isGlobal'] == true;
               
-              final absolutePath = p.join(isGlobal ? getGlobalMunninDir() : wikiRoot, '.munnin', 'mcp', name);
+              final absolutePath = p.join(isGlobal ? getGlobalMuninnDir() : wikiRoot, '.muninn', 'mcp', name);
               final dir = Directory(absolutePath);
               if (!dir.existsSync()) dir.createSync(recursive: true);
               

@@ -10,4 +10,4 @@
 3. **Code & Syntax Upgrades:**
    - Ensure all raw code blocks use triple backticks with explicit language identifiers[cite: 1].
    - Add `{edit}` tags to code blocks that represent editable snippets inside reader view[cite: 1].
-   - Convert standard key callouts into Munnin custom callouts `> [!{icon}{Title}{color}]` where appropriate[cite: 1].
+   - Convert standard key callouts into Muninn custom callouts `> [!{icon}{Title}{color}]` where appropriate[cite: 1].

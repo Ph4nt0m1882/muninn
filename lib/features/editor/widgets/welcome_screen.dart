@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:munnin/core/commands/commands.dart';
+import 'package:muninn/core/commands/commands.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final ValueChanged<String> onWikiOpened;
@@ -37,8 +37,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final iconPath = isDark
-        ? 'assets/images/icones/munnin(dark).svg'
-        : 'assets/images/icones/munnin(light).svg';
+        ? 'assets/images/icones/muninn(dark).svg'
+        : 'assets/images/icones/muninn(light).svg';
 
     final displayedWikis = _showAllWikis
         ? widget.recentWikis
@@ -59,7 +59,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   SvgPicture.asset(iconPath, width: 80, height: 80),
                   const SizedBox(height: 24),
                   Text(
-                    'Munnin',
+                    'Muninn',
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,

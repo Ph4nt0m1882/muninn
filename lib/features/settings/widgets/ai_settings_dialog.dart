@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:munnin/features/settings/widgets/api_key_dialog.dart';
-import 'package:munnin/features/settings/services/settings_manager.dart';
-import 'package:munnin/core/services/ai_service.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
-import 'package:munnin/core/utils/uv_installer.dart';
-import 'package:munnin/core/services/mcp_service.dart';
+import 'package:muninn/features/settings/widgets/api_key_dialog.dart';
+import 'package:muninn/features/settings/services/settings_manager.dart';
+import 'package:muninn/core/services/ai_service.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
+import 'package:muninn/core/utils/uv_installer.dart';
+import 'package:muninn/core/services/mcp_service.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
@@ -211,17 +211,17 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
                     OutlinedButton.icon(
                       onPressed: () async {
                         try {
-                          final globalDir = Directory(p.join(getGlobalMunninDir(), '.munnin', 'mcp'));
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Réinstallation de Munnin Tools en cours...')));
+                          final globalDir = Directory(p.join(getGlobalMuninnDir(), '.muninn', 'mcp'));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Réinstallation de Muninn Tools en cours...')));
                           McpService.instance.stopAll();
-                          await UvInstaller.installMunninTools(globalDir.path);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Munnin Tools réinstallé avec succès !')));
+                          await UvInstaller.installMuninnTools(globalDir.path);
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Muninn Tools réinstallé avec succès !')));
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: \$e')));
                         }
                       },
                       icon: const Icon(LucideIcons.refresh_cw, size: 16),
-                      label: const Text('Réinstaller Munnin Tools'),
+                      label: const Text('Réinstaller Muninn Tools'),
                     ),
                     const SizedBox(width: 8),
                   ],
@@ -282,9 +282,9 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
                 Expanded(
                   child: _buildFileList(
                     path: _isGlobalSelected 
-                        ? p.join(getGlobalMunninDir(), '.munnin', subDirectory)
+                        ? p.join(getGlobalMuninnDir(), '.muninn', subDirectory)
                         : EditorManager.instance.wikiRoot != null 
-                            ? p.join(EditorManager.instance.wikiRoot!, '.munnin', subDirectory)
+                            ? p.join(EditorManager.instance.wikiRoot!, '.muninn', subDirectory)
                             : null,
                     isFileBased: isFileBased,
                   ),

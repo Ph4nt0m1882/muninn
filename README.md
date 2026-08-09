@@ -1,6 +1,6 @@
-# ![munnin](.github/assets/images/Header.jpeg)
+# ![muninn](.github/assets/images/Header.jpeg)
 
-**Munnin** est un éditeur Markdown de bureau moderne, réactif et visuellement dynamique, conçu pour la fluidité et le plaisir d'écriture. L'application allie la puissance d'une interface utilisateur élégante développée en Flutter à la rapidité d'exécution d'un moteur bas niveau écrit en Rust.
+**Muninn** est un éditeur Markdown de bureau moderne, réactif et visuellement dynamique, conçu pour la fluidité et le plaisir d'écriture. L'application allie la puissance d'une interface utilisateur élégante développée en Flutter à la rapidité d'exécution d'un moteur bas niveau écrit en Rust.
 
 ## ✨ Fonctionnalités Principales
 
@@ -41,4 +41,4 @@
 
 ## 🎨 Philosophie de Design
 
-Munnin n'est pas juste un autre éditeur Markdown. L'accent est mis sur l'expérience utilisateur et les **micro-animations**. Du glissement des onglets jusqu'à l'atterrissage du corbeau (Munnin fait référence à Muninn, l'un des corbeaux d'Odin dans la mythologie nordique, représentant la mémoire), l'application est pensée pour paraître vivante et réactive sous la plume de l'utilisateur.
+Muninn n'est pas juste un autre éditeur Markdown. L'accent est mis sur l'expérience utilisateur et les **micro-animations**. Du glissement des onglets jusqu'à l'atterrissage du corbeau (Muninn fait référence à Muninn, l'un des corbeaux d'Odin dans la mythologie nordique, représentant la mémoire), l'application est pensée pour paraître vivante et réactive sous la plume de l'utilisateur.

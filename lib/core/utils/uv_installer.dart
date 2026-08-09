@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
 import 'package:archive/archive.dart';
-import 'package:munnin/core/utils/logger.dart';
+import 'package:muninn/core/utils/logger.dart';
 import 'package:flutter/services.dart';
 
 class UvInstaller {
@@ -85,16 +85,16 @@ class UvInstaller {
     }
   }
 
-  static Future<void> installMunninTools(String mcpGlobalDir) async {
-    final toolsDir = Directory(p.join(mcpGlobalDir, 'munnin_tools'));
+  static Future<void> installMuninnTools(String mcpGlobalDir) async {
+    final toolsDir = Directory(p.join(mcpGlobalDir, 'muninn_tools'));
     if (!await toolsDir.exists()) {
       await toolsDir.create(recursive: true);
     }
     
     // 1. Extraire les assets
-    AppLogger.i("Extraction des assets Python pour munnin_tools...");
-    final serverContent = await rootBundle.loadString('assets/mcp/munnin_tools/server.py');
-    final reqContent = await rootBundle.loadString('assets/mcp/munnin_tools/requirements.txt');
+    AppLogger.i("Extraction des assets Python pour muninn_tools...");
+    final serverContent = await rootBundle.loadString('assets/mcp/muninn_tools/server.py');
+    final reqContent = await rootBundle.loadString('assets/mcp/muninn_tools/requirements.txt');
     
     await File(p.join(toolsDir.path, 'server.py')).writeAsString(serverContent);
     await File(p.join(toolsDir.path, 'requirements.txt')).writeAsString(reqContent);
@@ -118,6 +118,6 @@ class UvInstaller {
       throw Exception("Erreur installation dépendances: \${pipResult.stderr}");
     }
     
-    AppLogger.i("Environnement munnin_tools installé avec succès !");
+    AppLogger.i("Environnement muninn_tools installé avec succès !");
   }
 }

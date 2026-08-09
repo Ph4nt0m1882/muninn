@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/core/commands/commands.dart';
+import 'package:muninn/core/commands/commands.dart';
 
 class LeftSidebar extends StatelessWidget {
   final VoidCallback onThemeToggle;

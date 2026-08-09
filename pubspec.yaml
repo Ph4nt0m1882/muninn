@@ -1,4 +1,4 @@
-name: munnin
+name: muninn
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -34,7 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  rust_lib_munnin:
+  rust_lib_muninn:
     path: rust_builder
   flutter_rust_bridge: 2.11.1
   flutter_quill: ^11.5.1
@@ -102,7 +102,7 @@ flutter:
     - assets/system_prompts/
     - assets/system_prompts/01_write/
     - assets/mcp/
-    - assets/mcp/munnin_tools/
+    - assets/mcp/muninn_tools/
     - assets/system_prompts/02_sums_it/
     - assets/system_prompts/03_refactor/
     - assets/system_prompts/04_create-rules/

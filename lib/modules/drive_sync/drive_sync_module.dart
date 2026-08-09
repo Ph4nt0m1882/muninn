@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:munnin/core/modules/munnin_module.dart';
-import 'package:munnin/core/modules/module_config_manager.dart';
+import 'package:muninn/core/modules/muninn_module.dart';
+import 'package:muninn/core/modules/module_config_manager.dart';
 import 'package:path/path.dart' as p;
 
-class DriveSyncModule implements MunninModule {
+class DriveSyncModule implements MuninnModule {
   @override
   String get id => 'drive_sync';
 
@@ -25,7 +25,7 @@ class DriveSyncModule implements MunninModule {
           ModuleFolderField(
             key: 'local_drive_path',
             label: 'Chemin du dossier de destination (ex: G:\\Mon Drive\\Notes)',
-            hint: r'C:\Users\nom\Google Drive\Munnin',
+            hint: r'C:\Users\nom\Google Drive\Muninn',
             isDirectoryPicker: true,
           ),
         ],
@@ -57,9 +57,9 @@ class DriveSyncModule implements MunninModule {
     // Le nom du dossier que l'utilisateur a donné (ex: "MesNotes")
     final folderName = relativePath.split('/').last;
 
-    // Si le dossier choisi ne finit pas par .munnin, on crée un sous-dossier .munnin
-    if (!localDrivePath.endsWith('.munnin')) {
-      localDrivePath = p.join(localDrivePath, '.$folderName.munnin');
+    // Si le dossier choisi ne finit pas par .muninn, on crée un sous-dossier .muninn
+    if (!localDrivePath.endsWith('.muninn')) {
+      localDrivePath = p.join(localDrivePath, '.$folderName.muninn');
       
       // Mise à jour de la configuration avec ce nouveau chemin
       final newConfig = Map<String, dynamic>.from(config);
@@ -73,19 +73,19 @@ class DriveSyncModule implements MunninModule {
       targetDir.createSync(recursive: true);
     }
     
-    // Le dossier créé par l'explorateur Munnin
-    final munninDir = Directory(p.join(wikiRoot, relativePath));
+    // Le dossier créé par l'explorateur Muninn
+    final muninnDir = Directory(p.join(wikiRoot, relativePath));
     
     // On supprime le dossier vide créé par l'UI pour laisser la place au lien
-    if (munninDir.existsSync()) {
-      munninDir.deleteSync(recursive: true);
+    if (muninnDir.existsSync()) {
+      muninnDir.deleteSync(recursive: true);
     }
     
-    // Création du Junction Point (mklink /J "chemin_munnin" "chemin_drive")
+    // Création du Junction Point (mklink /J "chemin_muninn" "chemin_drive")
     try {
       final result = await Process.run(
         'cmd',
-        ['/c', 'mklink', '/J', munninDir.path, targetDir.path],
+        ['/c', 'mklink', '/J', muninnDir.path, targetDir.path],
       );
       
       if (result.exitCode == 0) {

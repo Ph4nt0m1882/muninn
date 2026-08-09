@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/editor/models/opened_file.dart';
-import 'package:munnin/features/editor/models/file_metadata.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
+import 'package:muninn/features/editor/models/opened_file.dart';
+import 'package:muninn/features/editor/models/file_metadata.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
 
 class MetadataDialog extends StatefulWidget {
   final OpenedFile file;

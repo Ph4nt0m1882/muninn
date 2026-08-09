@@ -2,17 +2,17 @@ import 'dart:io';
 import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/features/editor/editor.dart';
-import 'package:munnin/features/explorer/models/explorer_node.dart';
-import 'package:munnin/features/explorer/widgets/explorer_item.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
-import 'package:munnin/features/editor/models/file_metadata.dart';
-import 'package:munnin/features/explorer/widgets/new_entity_dialog.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/src/rust/api/models.dart';
-import 'package:munnin/core/modules/module_registry.dart';
-import 'package:munnin/core/modules/module_config_manager.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/features/editor/editor.dart';
+import 'package:muninn/features/explorer/models/explorer_node.dart';
+import 'package:muninn/features/explorer/widgets/explorer_item.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
+import 'package:muninn/features/editor/models/file_metadata.dart';
+import 'package:muninn/features/explorer/widgets/new_entity_dialog.dart';
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/src/rust/api/models.dart';
+import 'package:muninn/core/modules/module_registry.dart';
+import 'package:muninn/core/modules/module_config_manager.dart';
 
 class FileExplorer extends StatefulWidget {
   final String rootPath;

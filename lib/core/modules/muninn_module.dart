@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// L'interface de base que tout module Munnin doit implémenter.
-abstract class MunninModule {
+/// L'interface de base que tout module Muninn doit implémenter.
+abstract class MuninnModule {
   /// L'identifiant unique du module (ex: "journal")
   String get id;
 

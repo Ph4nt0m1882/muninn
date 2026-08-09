@@ -8,7 +8,7 @@ fn utf16_offset(s: &str, byte_idx: usize) -> usize {
 }
 
 fn main() {
-    let raw_text = "# Bienvenue dans Munnin ! ??\n\nVotre nouvelle base de connaissances est prête. Munnin n'est pas un\nsimple lecteur Markdown, c'est un environnement **interactif**.\n\nVoici un aperçu de vos pouvoirs actuels :\n\n## 0. Syntaxe de base\n\nLa syntaxe html en général est compatible avec la syntaxe markdown\n\n### Titres :\nLes titres en markdowns sont hierarchiques";
+    let raw_text = "# Bienvenue dans Muninn ! ??\n\nVotre nouvelle base de connaissances est prï¿½te. Muninn n'est pas un\nsimple lecteur Markdown, c'est un environnement **interactif**.\n\nVoici un aperï¿½u de vos pouvoirs actuels :\n\n## 0. Syntaxe de base\n\nLa syntaxe html en gï¿½nï¿½ral est compatible avec la syntaxe markdown\n\n### Titres :\nLes titres en markdowns sont hierarchiques";
     let lower_raw = raw_text.to_lowercase();
     let query_lower = "titres";
     

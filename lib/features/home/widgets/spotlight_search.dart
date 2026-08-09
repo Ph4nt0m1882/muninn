@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:munnin/src/rust/api/search.dart' as rust_search;
-import 'package:munnin/features/editor/services/editor_manager.dart';
-import 'package:munnin/features/editor/widgets/markdown_renderer.dart';
+import 'package:muninn/src/rust/api/search.dart' as rust_search;
+import 'package:muninn/features/editor/services/editor_manager.dart';
+import 'package:muninn/features/editor/widgets/markdown_renderer.dart';
 import 'package:flutter/services.dart';
 
 class SpotlightSearchDialog extends StatefulWidget {

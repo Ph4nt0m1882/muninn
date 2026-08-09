@@ -1,6 +1,6 @@
 {
-    "name": "munnin",
-    "short_name": "munnin",
+    "name": "muninn",
+    "short_name": "muninn",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/src/rust/api/models.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/src/rust/api/models.dart';
 
 class ModuleConfigManager extends ChangeNotifier {
   static final ModuleConfigManager instance = ModuleConfigManager._internal();

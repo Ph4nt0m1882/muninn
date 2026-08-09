@@ -4,25 +4,25 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:munnin/features/editor/editor.dart';
-import 'package:munnin/features/editor/widgets/icon_picker_widget.dart';
-import 'package:munnin/features/editor/widgets/editor_toolbar.dart';
-import 'package:munnin/features/settings/settings.dart';
+import 'package:muninn/features/editor/editor.dart';
+import 'package:muninn/features/editor/widgets/icon_picker_widget.dart';
+import 'package:muninn/features/editor/widgets/editor_toolbar.dart';
+import 'package:muninn/features/settings/settings.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/styles/monokai-sublime.dart';
-import 'package:munnin/features/editor/utils/markdown_chunk_analyzer.dart';
-import 'package:munnin/features/editor/widgets/hover_chunk_indicator.dart';
-import 'package:munnin/features/editor/utils/patched_markdown_syntax.dart';
-import 'package:munnin/features/editor/widgets/local_search_widget.dart';
-import 'package:munnin/core/commands/commands.dart';
+import 'package:muninn/features/editor/utils/markdown_chunk_analyzer.dart';
+import 'package:muninn/features/editor/widgets/hover_chunk_indicator.dart';
+import 'package:muninn/features/editor/utils/patched_markdown_syntax.dart';
+import 'package:muninn/features/editor/widgets/local_search_widget.dart';
+import 'package:muninn/core/commands/commands.dart';
 
-import 'package:munnin/features/editor/widgets/interactive_code_block.dart';
-import 'package:munnin/features/editor/widgets/welcome_screen.dart';
-import 'package:munnin/features/editor/widgets/metadata_dialog.dart';
-import 'package:munnin/features/editor/models/file_metadata.dart';
+import 'package:muninn/features/editor/widgets/interactive_code_block.dart';
+import 'package:muninn/features/editor/widgets/welcome_screen.dart';
+import 'package:muninn/features/editor/widgets/metadata_dialog.dart';
+import 'package:muninn/features/editor/models/file_metadata.dart';
 
-import 'package:munnin/core/theme/theme_manager.dart';
-import 'package:munnin/features/editor/utils/custom_monokai_theme.dart';
+import 'package:muninn/core/theme/theme_manager.dart';
+import 'package:muninn/features/editor/utils/custom_monokai_theme.dart';
 
 class MarkdownEditor extends StatefulWidget {
   const MarkdownEditor({super.key});

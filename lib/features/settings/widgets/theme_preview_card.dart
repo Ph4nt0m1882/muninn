@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/core/theme/theme.dart';
+import 'package:muninn/core/theme/theme.dart';
 
 class ThemePreviewCard extends StatefulWidget {
   final CrowStyle style;

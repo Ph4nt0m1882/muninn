@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/explorer/explorer.dart';
-import 'package:munnin/features/ai_chat/widgets/chat_panel.dart';
-import 'package:munnin/features/editor/editor.dart';
+import 'package:muninn/features/explorer/explorer.dart';
+import 'package:muninn/features/ai_chat/widgets/chat_panel.dart';
+import 'package:muninn/features/editor/editor.dart';
 
 class RightSidebar extends StatefulWidget {
   final String wikiRoot;

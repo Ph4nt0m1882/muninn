@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:munnin/features/editor/utils/icon_list.dart';
-import 'package:munnin/features/editor/utils/emoji_list.dart';
-import 'package:munnin/features/editor/utils/symbol_list.dart';
+import 'package:muninn/features/editor/utils/icon_list.dart';
+import 'package:muninn/features/editor/utils/emoji_list.dart';
+import 'package:muninn/features/editor/utils/symbol_list.dart';
 import 'package:unicode_emojis/unicode_emojis.dart';
 
 class IconPickerWidget extends StatefulWidget {

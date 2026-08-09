@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:munnin/core/modules/munnin_module.dart';
-import 'package:munnin/core/modules/module_config_manager.dart';
+import 'package:muninn/core/modules/muninn_module.dart';
+import 'package:muninn/core/modules/module_config_manager.dart';
 import 'package:path/path.dart' as p;
 
-class JournalModule implements MunninModule {
+class JournalModule implements MuninnModule {
   @override
   String get id => 'journal';
 

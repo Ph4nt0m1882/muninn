@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/core/utils/uv_installer.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/core/utils/uv_installer.dart';
 import 'package:path/path.dart' as p;
-import 'package:munnin/core/services/ai_service.dart';
+import 'package:muninn/core/services/ai_service.dart';
 
 class McpTool {
   final String serverName;
@@ -67,7 +67,7 @@ class McpClient {
       await _sendRequest('initialize', {
         'protocolVersion': '2024-11-05',
         'capabilities': {},
-        'clientInfo': {'name': 'munnin', 'version': '1.0.0'}
+        'clientInfo': {'name': 'muninn', 'version': '1.0.0'}
       });
 
       // 2. Notification initialized
@@ -194,25 +194,25 @@ class McpService {
     currentWikiRoot = wikiRoot;
 
     // Démarrer les clients globaux
-    final globalDir = Directory(p.join(getGlobalMunninDir(), '.munnin', 'mcp'));
+    final globalDir = Directory(p.join(getGlobalMuninnDir(), '.muninn', 'mcp'));
     
     try {
       if (!await globalDir.exists()) {
         await globalDir.create(recursive: true);
       }
-      final toolsDir = Directory(p.join(globalDir.path, 'munnin_tools'));
+      final toolsDir = Directory(p.join(globalDir.path, 'muninn_tools'));
       if (!await toolsDir.exists() || !await File(p.join(toolsDir.path, 'server.py')).exists()) {
-        await UvInstaller.installMunninTools(globalDir.path);
+        await UvInstaller.installMuninnTools(globalDir.path);
       }
     } catch (e) {
-      AppLogger.e("Erreur auto-install munnin_tools: \$e");
+      AppLogger.e("Erreur auto-install muninn_tools: \$e");
     }
 
     await _scanAndStart(globalDir);
 
     // Démarrer les clients locaux
     if (wikiRoot != null) {
-      final localDir = Directory(p.join(wikiRoot, '.munnin', 'mcp'));
+      final localDir = Directory(p.join(wikiRoot, '.muninn', 'mcp'));
       await _scanAndStart(localDir);
     }
   }

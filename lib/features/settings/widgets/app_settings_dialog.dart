@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/core/commands/commands.dart';
+import 'package:muninn/core/commands/commands.dart';
 
 class AppSettingsDialog extends StatelessWidget {
   const AppSettingsDialog({super.key});

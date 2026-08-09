@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/src/rust/api/chat.dart' as rust_chat;
-import 'package:munnin/core/services/ai_service.dart';
-import 'package:munnin/features/editor/widgets/markdown_renderer.dart';
+import 'package:muninn/src/rust/api/chat.dart' as rust_chat;
+import 'package:muninn/core/services/ai_service.dart';
+import 'package:muninn/features/editor/widgets/markdown_renderer.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:munnin/features/ai_chat/utils/chat_text_controller.dart';
-import 'package:munnin/features/ai_chat/widgets/autocomplete_popup.dart';
+import 'package:muninn/features/ai_chat/utils/chat_text_controller.dart';
+import 'package:muninn/features/ai_chat/widgets/autocomplete_popup.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ChatPanel extends StatefulWidget {
@@ -69,7 +69,7 @@ class _ChatPanelState extends State<ChatPanel> {
       
       // Load custom commands (local)
       try {
-        final localCmdsDir = Directory(p.join(widget.wikiRoot, '.munnin', 'commands'));
+        final localCmdsDir = Directory(p.join(widget.wikiRoot, '.muninn', 'commands'));
         if (await localCmdsDir.exists()) {
           final dirs = await localCmdsDir.list().toList();
           for (var dir in dirs) {
@@ -84,7 +84,7 @@ class _ChatPanelState extends State<ChatPanel> {
       
       // Load custom commands (global)
       try {
-        final globalCmdsDir = Directory(p.join(getGlobalMunninDir(), '.munnin', 'commands'));
+        final globalCmdsDir = Directory(p.join(getGlobalMuninnDir(), '.muninn', 'commands'));
         debugPrint("Chargement global commands depuis: ${globalCmdsDir.path}");
         if (await globalCmdsDir.exists()) {
           final dirs = await globalCmdsDir.list().toList();

@@ -2,7 +2,7 @@
 
 ## Content Generation Guidelines
 - **Atomic & Focused:** Write well-structured, modular content centered on the target topic.
-- **Munnin Formatting:** Actively leverage Munnin's enhanced Markdown features when applicable:
+- **Muninn Formatting:** Actively leverage Muninn's enhanced Markdown features when applicable:
   - Add logical headings (`#`, `##`, `###`) to establish a clear visual hierarchy[cite: 1].
   - Use custom callouts `> [!{icon}{Title}{color}]` for key highlights, definitions, or warnings[cite: 1].
   - Use 4-state checkboxes (`- [ ]`, `- [*]`, `- [v]`, `- [x]`) for tasks or roadmaps[cite: 1].

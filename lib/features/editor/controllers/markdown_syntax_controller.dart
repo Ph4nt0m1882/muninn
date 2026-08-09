@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
-import 'package:munnin/features/editor/services/link_preview_manager.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
+import 'package:muninn/features/editor/services/link_preview_manager.dart';
 
 class MarkdownSyntaxController extends TextEditingController {
   String? _hoveredUrl;

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:yaml/yaml.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/core/utils/logger.dart';
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/core/utils/logger.dart';
 
 class SettingsManager extends ChangeNotifier {
   static final SettingsManager instance = SettingsManager._internal();

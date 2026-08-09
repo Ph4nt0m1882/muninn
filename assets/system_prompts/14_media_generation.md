@@ -10,4 +10,4 @@ When the user requests visual content, or when a concept is best explained visua
 ### 2. External Images & Media Generation
 - **When Prompted for Visuals/Illustrations:** If the user explicitly asks for an image, artwork, or realistic visual, invoke the image generation tool.
 - **Image Prompt Engineering:** Formulate clear, highly descriptive prompts for the image tool (focusing on subject, style, lighting, and clarity).
-- **Embedding:** Embed generated images using Munnin's local manager syntax `!![Description](image_path_or_url)` to trigger local downloading and caching.
+- **Embedding:** Embed generated images using Muninn's local manager syntax `!![Description](image_path_or_url)` to trigger local downloading and caching.

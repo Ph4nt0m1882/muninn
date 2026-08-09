@@ -13,7 +13,7 @@ pub struct AppSettings {
 
 /// Helper pour obtenir le chemin du fichier de configuration
 fn get_settings_path() -> Option<PathBuf> {
-    if let Some(proj_dirs) = ProjectDirs::from("com", "munnin", "Munnin") {
+    if let Some(proj_dirs) = ProjectDirs::from("com", "muninn", "Muninn") {
         let config_dir = proj_dirs.config_dir();
 
         // S'assurer que le dossier existe

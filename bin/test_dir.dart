@@ -2,7 +2,7 @@ import 'dart:io';
 
 void main() async {
   String appData = Platform.environment['APPDATA'] ?? '';
-  String globalPath = '$appData\\Munnin/.munnin/commands';
+  String globalPath = '$appData\\Muninn/.muninn/commands';
   
   print('Path: $globalPath');
   var dir = Directory(globalPath);

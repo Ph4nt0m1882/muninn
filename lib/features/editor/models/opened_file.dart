@@ -1,5 +1,5 @@
-import 'package:munnin/src/rust/api/models.dart';
-import 'package:munnin/features/editor/models/file_metadata.dart';
+import 'package:muninn/src/rust/api/models.dart';
+import 'package:muninn/features/editor/models/file_metadata.dart';
 
 enum EditorMode { markdown, render, settings }
 

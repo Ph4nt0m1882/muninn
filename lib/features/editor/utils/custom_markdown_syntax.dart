@@ -1,7 +1,7 @@
 import 'package:markdown/markdown.dart';
 
 /// Syntaxe personnalisée pour intercepter `!![alt](src)`
-/// et générer une balise HTML custom `<munnin-img src="..." alt="..."></munnin-img>`
+/// et générer une balise HTML custom `<muninn-img src="..." alt="..."></muninn-img>`
 class DoubleBangImageSyntax extends InlineSyntax {
   // Regex pour attraper !![alt](src)
   // Group 1: alt text
@@ -14,7 +14,7 @@ class DoubleBangImageSyntax extends InlineSyntax {
     final src = match[2] ?? '';
 
     // Générer un élément HTML custom
-    final el = Element.empty('munnin-img');
+    final el = Element.empty('muninn-img');
     el.attributes['alt'] = alt;
     el.attributes['src'] = src;
 
@@ -80,7 +80,7 @@ class ContextLinkSyntax extends InlineSyntax {
     final title = match[1] ?? '';
     final path = match[2] ?? '';
 
-    final el = Element.empty('munnin-context-link');
+    final el = Element.empty('muninn-context-link');
     el.attributes['title'] = title;
     el.attributes['path'] = path;
     
@@ -119,10 +119,10 @@ class LatexInlineSyntax extends InlineSyntax {
   }
 }
 
-class MunninCheckboxSyntax extends InlineSyntax {
+class MuninnCheckboxSyntax extends InlineSyntax {
   static int checkboxId = 0;
 
-  MunninCheckboxSyntax() : super('');
+  MuninnCheckboxSyntax() : super('');
 
   @override
   RegExp get pattern => RegExp(r'^\[([ xXvV\*])\]\s+');
@@ -130,7 +130,7 @@ class MunninCheckboxSyntax extends InlineSyntax {
   @override
   bool onMatch(InlineParser parser, Match match) {
     final state = (match[1] ?? '').toLowerCase();
-    final el = Element.empty('munnin-checkbox');
+    final el = Element.empty('muninn-checkbox');
     el.attributes['id'] = '${checkboxId++}';
     el.attributes['state'] = state;
     parser.addNode(el);

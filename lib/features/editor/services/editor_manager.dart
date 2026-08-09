@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:munnin/core/utils/logger.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/src/rust/api/models.dart';
-import 'package:munnin/src/rust/api/search.dart' as rust_search;
-import 'package:munnin/src/rust/api/rag.dart' as rust_rag;
-import 'package:munnin/core/modules/module_registry.dart';
+import 'package:muninn/core/utils/logger.dart';
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/src/rust/api/models.dart';
+import 'package:muninn/src/rust/api/search.dart' as rust_search;
+import 'package:muninn/src/rust/api/rag.dart' as rust_rag;
+import 'package:muninn/core/modules/module_registry.dart';
 
-import 'package:munnin/features/editor/models/opened_file.dart';
-import 'package:munnin/features/editor/models/file_metadata.dart';
+import 'package:muninn/features/editor/models/opened_file.dart';
+import 'package:muninn/features/editor/models/file_metadata.dart';
 
 class EditorManager extends ChangeNotifier {
   static final EditorManager instance = EditorManager._internal();

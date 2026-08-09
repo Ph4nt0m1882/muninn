@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:munnin/features/navigation/navigation.dart';
+import 'package:muninn/features/navigation/navigation.dart';
 import 'package:window_manager/window_manager.dart';
 
 class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -22,8 +22,8 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
 
     // Chemin vers l'icône en fonction du thème
     final iconPath = Theme.of(context).brightness == Brightness.dark
-        ? 'assets/images/icones/munnin(dark).svg'
-        : 'assets/images/icones/munnin(light).svg';
+        ? 'assets/images/icones/muninn(dark).svg'
+        : 'assets/images/icones/muninn(light).svg';
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -54,7 +54,7 @@ class CustomTopBar extends StatelessWidget implements PreferredSizeWidget {
                         SvgPicture.asset(iconPath, width: 20, height: 20),
                         const SizedBox(width: 12),
                         Text(
-                          "Munnin",
+                          "Muninn",
                           style: TextStyle(
                             color: theme.textTheme.bodyLarge?.color,
                             fontSize: 14,

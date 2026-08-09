@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
 import 'package:flutter_highlighter/themes/atom-one-dark.dart';
 import 'package:flutter_highlighter/themes/atom-one-light.dart';
 import 'package:highlighter/highlighter.dart' show highlight, Node;
 import 'package:simple_icons/simple_icons.dart';
-import 'package:munnin/core/theme/theme_manager.dart';
-import 'package:munnin/features/editor/utils/custom_monokai_theme.dart';
+import 'package:muninn/core/theme/theme_manager.dart';
+import 'package:muninn/features/editor/utils/custom_monokai_theme.dart';
 // Contrôleur de texte personnalisé pour la coloration syntaxique en temps réel
 class CodeEditingController extends TextEditingController {
   String language;

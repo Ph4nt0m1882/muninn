@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/explorer/models/explorer_node.dart';
-import 'package:munnin/core/constants/app_sizes.dart';
+import 'package:muninn/features/explorer/models/explorer_node.dart';
+import 'package:muninn/core/constants/app_sizes.dart';
 
 /// Composant visuel représentant une seule ligne dans l'explorateur (fichier ou dossier).
 class ExplorerItem extends StatelessWidget {

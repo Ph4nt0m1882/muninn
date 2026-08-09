@@ -1,10 +1,10 @@
 # 07_app_markdown.md
 
-## Munnin Extended Markdown Syntax
-When generating or modifying content inside Munnin, prioritize and strictly format the application's native Markdown extensions.
+## Muninn Extended Markdown Syntax
+When generating or modifying content inside Muninn, prioritize and strictly format the application's native Markdown extensions.
 
 ### 1. Interactive Checkboxes (4 States)
-Munnin supports 4 interactive checkbox states. Use them appropriately to represent progress:
+Muninn supports 4 interactive checkbox states. Use them appropriately to represent progress:
 - `- [ ]` : Unchecked / Pending task
 - `- [*]` : In progress task
 - `- [v]` : Validated / Completed task
@@ -17,7 +17,7 @@ Munnin supports 4 interactive checkbox states. Use them appropriately to represe
 ### 3. Native Admonitions & Callouts
 Use callout blocks using quotes combined with callout identifiers:
 - **Standard GitHub Callouts:** `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!CAUTION]`[cite: 1].
-- **Custom Munnin Callouts:** Use the extended syntax `> [!{icon}{Title}{color}]`[cite: 1].
+- **Custom Muninn Callouts:** Use the extended syntax `> [!{icon}{Title}{color}]`[cite: 1].
   - Example: `> [!{lucide-flame}{Critical Warning}{red}]`[cite: 1]
   - *Icons:* Must be valid Lucide or Simple Icons names[cite: 1].
   - *Colors:* Standard English basic color names (`red`, `blue`, `green`, `purple`, `orange`, etc.)[cite: 1].

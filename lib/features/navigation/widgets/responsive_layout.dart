@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/navigation/navigation.dart';
+import 'package:muninn/features/navigation/navigation.dart';
 
 class ResponsiveLayout extends StatelessWidget {
   final Widget child; // La zone centrale (l'éditeur)

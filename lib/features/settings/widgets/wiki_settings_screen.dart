@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/features/editor/services/editor_manager.dart';
-import 'package:munnin/src/rust/api/fs.dart' as rust_fs;
-import 'package:munnin/src/rust/api/models.dart';
-import 'package:munnin/core/utils/logger.dart';
+import 'package:muninn/features/editor/services/editor_manager.dart';
+import 'package:muninn/src/rust/api/fs.dart' as rust_fs;
+import 'package:muninn/src/rust/api/models.dart';
+import 'package:muninn/core/utils/logger.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_writer/yaml_writer.dart';
-import 'package:munnin/features/settings/services/settings_manager.dart';
+import 'package:muninn/features/settings/services/settings_manager.dart';
 
 class WikiSettingsScreen extends StatefulWidget {
   const WikiSettingsScreen({super.key});

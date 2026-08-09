@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:munnin/core/modules/munnin_module.dart';
-import 'package:munnin/core/modules/module_registry.dart';
+import 'package:muninn/core/modules/muninn_module.dart';
+import 'package:muninn/core/modules/module_registry.dart';
 import 'package:file_picker/file_picker.dart';
 
 class NewEntityDialog extends StatefulWidget {

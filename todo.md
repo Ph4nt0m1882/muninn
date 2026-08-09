@@ -1,4 +1,4 @@
-# Munnin - Liste des choses à faire (To-Do)
+# Muninn - Liste des choses à faire (To-Do)
 
 ## 🤖 Intelligence Artificielle (RAG & Agent)
 - [x] **Historique des Conversations** : Implémenter la sauvegarde et l'interface pour parcourir, reprendre et gérer les anciennes sessions de chat.

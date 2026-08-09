@@ -2,18 +2,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:markdown/markdown.dart' as md;
-import 'package:munnin/features/editor/widgets/interactive_code_block.dart';
+import 'package:muninn/features/editor/widgets/interactive_code_block.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:munnin/features/editor/editor.dart';
-import 'package:munnin/features/editor/utils/custom_markdown_syntax.dart';
-import 'package:munnin/features/editor/utils/color_parser.dart';
-import 'package:munnin/features/editor/widgets/flying_crow_animation.dart';
-import 'package:munnin/features/editor/utils/icon_parser.dart';
+import 'package:muninn/features/editor/editor.dart';
+import 'package:muninn/features/editor/utils/custom_markdown_syntax.dart';
+import 'package:muninn/features/editor/utils/color_parser.dart';
+import 'package:muninn/features/editor/widgets/flying_crow_animation.dart';
+import 'package:muninn/features/editor/utils/icon_parser.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import 'package:munnin/features/editor/services/link_preview_manager.dart';
-import 'package:munnin/core/theme/theme_manager.dart';
-import 'package:munnin/core/theme/crow_style.dart';
+import 'package:muninn/features/editor/services/link_preview_manager.dart';
+import 'package:muninn/core/theme/theme_manager.dart';
+import 'package:muninn/core/theme/crow_style.dart';
 
 /// Widget responsable du rendu HTML à partir du Markdown brut.
 class MarkdownRenderer extends StatelessWidget {
@@ -41,7 +41,7 @@ class MarkdownRenderer extends StatelessWidget {
     final theme = Theme.of(context);
     final currentStyle = theme.extension<CrowStyleExtension>()!.style;
     
-    MunninCheckboxSyntax.checkboxId = 0;
+    MuninnCheckboxSyntax.checkboxId = 0;
     
     // 0.5 Pré-traitement pour préserver l'attribut {edit} des blocs de code
     final String preprocessedContent = content.replaceAllMapped(
@@ -62,7 +62,7 @@ class MarkdownRenderer extends StatelessWidget {
         ContextLinkSyntax(), // Syntaxe d'injection de contexte @[]()
         LatexDisplaySyntax(), // $$...$$
         LatexInlineSyntax(), // $...$
-        MunninCheckboxSyntax(),
+        MuninnCheckboxSyntax(),
         FootnoteDefSyntax(),
       ],
     );
@@ -193,7 +193,7 @@ class MarkdownRenderer extends StatelessWidget {
   ) {
     return [
       TagExtension(
-        tagsToExtend: {"munnin-context-link"},
+        tagsToExtend: {"muninn-context-link"},
         builder: (extensionContext) {
           final title = extensionContext.element?.attributes['title'] ?? 'Fichier';
           final path = extensionContext.element?.attributes['path'] ?? '';
@@ -563,7 +563,7 @@ class MarkdownRenderer extends StatelessWidget {
         },
       ),
       TagExtension(
-        tagsToExtend: {"munnin-checkbox"},
+        tagsToExtend: {"muninn-checkbox"},
         builder: (extensionContext) {
           final idStr = extensionContext.attributes['id'];
           final state = extensionContext.attributes['state'] ?? ' ';
@@ -613,7 +613,7 @@ class MarkdownRenderer extends StatelessWidget {
         },
       ),
       TagExtension(
-        tagsToExtend: {"munnin-img"},
+        tagsToExtend: {"muninn-img"},
         builder: (extensionContext) {
           final src = extensionContext.attributes['src'] ?? '';
           final alt = extensionContext.attributes['alt'] ?? '';

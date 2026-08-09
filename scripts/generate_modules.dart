@@ -16,12 +16,12 @@ void main() {
       final mainModuleFile = File('${entity.path}/${moduleName}_module.dart');
       
       if (mainModuleFile.existsSync()) {
-        moduleFiles.add('package:munnin/modules/$moduleName/${moduleName}_module.dart');
+        moduleFiles.add('package:muninn/modules/$moduleName/${moduleName}_module.dart');
         
-        // On lit le fichier pour trouver le nom de la classe qui étend MunninModule
+        // On lit le fichier pour trouver le nom de la classe qui étend MuninnModule
         final lines = mainModuleFile.readAsLinesSync();
         for (var line in lines) {
-          if (line.contains('class') && line.contains('implements MunninModule')) {
+          if (line.contains('class') && line.contains('implements MuninnModule')) {
             final parts = line.trim().split(RegExp(r'\s+'));
             final classIndex = parts.indexOf('class');
             if (classIndex != -1 && classIndex + 1 < parts.length) {
@@ -37,7 +37,7 @@ void main() {
   // Génération du fichier module_registry.dart
   final buffer = StringBuffer();
   buffer.writeln('// CE FICHIER EST GÉNÉRÉ AUTOMATIQUEMENT. NE PAS MODIFIER.');
-  buffer.writeln("import 'package:munnin/core/modules/munnin_module.dart';");
+  buffer.writeln("import 'package:muninn/core/modules/muninn_module.dart';");
   
   for (var file in moduleFiles) {
     buffer.writeln("import '$file';");
@@ -48,13 +48,13 @@ void main() {
   buffer.writeln('  static final ModuleRegistry instance = ModuleRegistry._internal();');
   buffer.writeln('  ModuleRegistry._internal();');
   buffer.writeln();
-  buffer.writeln('  final List<MunninModule> _modules = [');
+  buffer.writeln('  final List<MuninnModule> _modules = [');
   for (var className in moduleClasses) {
     buffer.writeln('    $className(),');
   }
   buffer.writeln('  ];');
   buffer.writeln();
-  buffer.writeln('  List<MunninModule> get modules => _modules;');
+  buffer.writeln('  List<MuninnModule> get modules => _modules;');
   buffer.writeln('}');
 
   final registryFile = File('lib/core/modules/module_registry.dart');
