@@ -3,7 +3,7 @@
 Here is the standard template you must follow for `server_content`:
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 # Créez une instance de FastMCP avec le nom de votre serveur
 mcp = FastMCP("nom_du_serveur")
@@ -27,13 +27,13 @@ def ma_fonction(param1: str) -> str:
     except Exception as e:
         return f"Erreur : {str(e)}"
 
-# Le point d'entrée est géré automatiquement par munnin,
-# ne rajoutez pas de if __name__ == "__main__": mcp.run()
+if __name__ == "__main__":
+    mcp.run()
 ```
 
 Here is the standard template for `requirements_content`:
 
 ```text
-mcp
+fastmcp
 # Ajoutez vos autres dépendances ici (ex: requests, beautifulsoup4)
 ```

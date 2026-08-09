@@ -253,6 +253,8 @@ class AIService {
         }, requiredProperties: ['name', 'content']),
       ));
     }
+    
+    functionDeclarations.addAll(_getAdvancedTools());
 
     final tool = Tool(functionDeclarations: functionDeclarations);
 
@@ -265,13 +267,17 @@ class AIService {
     );
 
     try {
-      final chatSession = chatModel.startChat(history: history);
-      var response = await chatSession.sendMessage(Content.text(message));
+      var currentSession = chatModel.startChat(history: history);
+      var response = await currentSession.sendMessage(Content.text(message));
       
       // Gérer les appels d'outils
-      if (response.functionCalls.isNotEmpty) {
-        String finalReplyText = response.text ?? "";
-        List<String> executedTools = [];
+      int iterations = 0;
+      const int maxIterations = 5;
+      String finalReplyText = "";
+      List<String> executedTools = [];
+
+      while (response.functionCalls.isNotEmpty && iterations < maxIterations) {
+        iterations++;
         List<FunctionResponse> functionResponses = [];
 
         for (var functionCall in response.functionCalls) {
@@ -293,6 +299,70 @@ class AIService {
               file.writeAsStringSync(args['content'] as String);
               if (args['isGlobal'] != true) EditorManager.instance.openFile(absolutePath);
               executedTools.add("Modifier ${args['filePath']}");
+            }
+            else if (cmdId == 'wiki_read_file') {
+              final String filePath = args['filePath'] as String;
+              final absolutePath = p.join(wikiRoot, filePath);
+              final file = File(absolutePath);
+              if (file.existsSync()) {
+                final content = file.readAsStringSync();
+                functionResponses.add(FunctionResponse(cmdId, {'content': content}));
+              } else {
+                functionResponses.add(FunctionResponse(cmdId, {'error': 'Fichier introuvable'}));
+              }
+            }
+            else if (cmdId == 'wiki_append_to_file') {
+              final String filePath = args['filePath'] as String;
+              final String content = args['content'] as String;
+              final absolutePath = p.join(wikiRoot, filePath);
+              final file = File(absolutePath);
+              if (file.existsSync()) {
+                file.writeAsStringSync("\n" + content, mode: FileMode.append);
+                EditorManager.instance.openFile(absolutePath);
+                executedTools.add("Ajouter à $filePath");
+              } else {
+                functionResponses.add(FunctionResponse(cmdId, {'error': 'Fichier introuvable'}));
+              }
+            }
+            else if (cmdId == 'wiki_list_directory') {
+              final String dirPath = args['dirPath'] as String;
+              final absolutePath = dirPath.isEmpty ? wikiRoot : p.join(wikiRoot, dirPath);
+              final dir = Directory(absolutePath);
+              if (dir.existsSync()) {
+                final list = dir.listSync();
+                final names = list.map((e) => p.basename(e.path)).toList();
+                functionResponses.add(FunctionResponse(cmdId, {'files': names}));
+              } else {
+                functionResponses.add(FunctionResponse(cmdId, {'error': 'Dossier introuvable'}));
+              }
+            }
+            else if (cmdId == 'wiki_create_directory') {
+              final String dirPath = args['dirPath'] as String;
+              final absolutePath = p.join(wikiRoot, dirPath);
+              Directory(absolutePath).createSync(recursive: true);
+              executedTools.add("Créer dossier $dirPath");
+            }
+            else if (cmdId == 'wiki_delete_file') {
+              final String path = args['path'] as String;
+              final absolutePath = p.join(wikiRoot, path);
+              if (FileSystemEntity.isDirectorySync(absolutePath)) {
+                Directory(absolutePath).deleteSync(recursive: true);
+              } else if (File(absolutePath).existsSync()) {
+                File(absolutePath).deleteSync();
+              }
+              executedTools.add("Supprimer $path");
+            }
+            else if (cmdId == 'wiki_rename_file') {
+              final String oldPath = args['oldPath'] as String;
+              final String newPath = args['newPath'] as String;
+              final absoluteOld = p.join(wikiRoot, oldPath);
+              final absoluteNew = p.join(wikiRoot, newPath);
+              if (FileSystemEntity.isDirectorySync(absoluteOld)) {
+                Directory(absoluteOld).renameSync(absoluteNew);
+              } else if (File(absoluteOld).existsSync()) {
+                File(absoluteOld).renameSync(absoluteNew);
+              }
+              executedTools.add("Renommer $oldPath");
             }
             else if (cmdId == 'create_rule') {
               final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMunninDir() : wikiRoot, '.munnin', 'rules', '${args['name']}.md');
@@ -357,12 +427,12 @@ class AIService {
         
         if (functionResponses.isNotEmpty) {
           try {
-            response = await chatSession.sendMessage(Content('user', functionResponses));
+            response = await currentSession.sendMessage(Content('user', functionResponses));
             finalReplyText = response.text ?? finalReplyText;
           } catch (e) {
             if (e.toString().contains('thought_signature') || e.toString().contains('Function call')) {
               AppLogger.w("Fallback thought_signature déclenché pour contourner le bug du SDK Dart");
-              String toolResultsText = "Voici les résultats des outils appelés (utilise-les pour répondre) :\n";
+              String toolResultsText = "Voici les résultats des outils appelés (utilise-les pour répondre ou pour appeler l'outil suivant si nécessaire) :\n";
               for (var fr in functionResponses) {
                 toolResultsText += "Outil ${fr.name} : ${jsonEncode(fr.response)}\n";
               }
@@ -370,20 +440,25 @@ class AIService {
                 model: AIService.selectedModelNotifier.value,
                 apiKey: apiKey,
                 systemInstruction: finalSystemInstruction.isNotEmpty ? Content.system(finalSystemInstruction) : null,
+                tools: functionDeclarations.isNotEmpty ? [tool] : null,
               );
               final fallbackSession = fallbackModel.startChat(history: history);
               response = await fallbackSession.sendMessage(Content.text("$message\n\n$toolResultsText"));
               finalReplyText = response.text ?? finalReplyText;
+              currentSession = fallbackSession;
             } else {
               rethrow;
             }
           }
+        } else {
+          break;
         }
-        
-        return ChatResult(finalReplyText.isNotEmpty ? finalReplyText : "Action effectuée.", sources);
       }
       
-      return ChatResult(response.text ?? "Aucune réponse générée.", sources);
+      if (finalReplyText.isEmpty && response.text != null) {
+        finalReplyText = response.text!;
+      }
+      return ChatResult(finalReplyText.isNotEmpty ? finalReplyText : (iterations > 0 ? "Action effectuée." : "Aucune réponse générée."), sources);
     } catch (e) {
       AppLogger.e("Erreur de l'API Gemini (Chat) : $e");
       rethrow;
@@ -425,5 +500,69 @@ class AIService {
       requiredProperties: requiredProperties,
       items: items,
     );
+  }
+  List<FunctionDeclaration> _getAdvancedTools() {
+    return [
+      FunctionDeclaration(
+        'wiki_open_file',
+        'Ouvrir un fichier du wiki dans l''éditeur.',
+        Schema.object(properties: {
+          'filePath': Schema.string(description: 'Le chemin relatif du fichier à ouvrir.'),
+        }, requiredProperties: ['filePath']),
+      ),
+      FunctionDeclaration(
+        'wiki_write_file',
+        'Créer ou écraser un fichier avec du contenu texte.',
+        Schema.object(properties: {
+          'filePath': Schema.string(description: 'Le chemin relatif du fichier à créer ou modifier.'),
+          'content': Schema.string(description: 'Le contenu entier à écrire dans le fichier.'),
+          'isGlobal': Schema.boolean(description: 'Optionnel. True pour sauvegarder globalement, sinon false.'),
+        }, requiredProperties: ['filePath', 'content']),
+      ),
+      FunctionDeclaration(
+        'wiki_read_file',
+        'Lire l''intégralité d''un fichier du wiki.',
+        Schema.object(properties: {
+          'filePath': Schema.string(description: 'Le chemin relatif du fichier à lire.'),
+        }, requiredProperties: ['filePath']),
+      ),
+      FunctionDeclaration(
+        'wiki_append_to_file',
+        'Ajouter du texte à la fin d''un fichier.',
+        Schema.object(properties: {
+          'filePath': Schema.string(description: 'Le chemin relatif du fichier à modifier.'),
+          'content': Schema.string(description: 'Le contenu à rajouter.'),
+        }, requiredProperties: ['filePath', 'content']),
+      ),
+      FunctionDeclaration(
+        'wiki_list_directory',
+        'Lister tous les fichiers et dossiers contenus dans un répertoire.',
+        Schema.object(properties: {
+          'dirPath': Schema.string(description: 'Le chemin relatif du dossier à lister (laisse vide pour racine).'),
+        }, requiredProperties: ['dirPath']),
+      ),
+      FunctionDeclaration(
+        'wiki_create_directory',
+        'Créer un nouveau dossier vide.',
+        Schema.object(properties: {
+          'dirPath': Schema.string(description: 'Le chemin relatif du dossier à créer.'),
+        }, requiredProperties: ['dirPath']),
+      ),
+      FunctionDeclaration(
+        'wiki_delete_file',
+        'Supprimer un fichier ou un dossier.',
+        Schema.object(properties: {
+          'path': Schema.string(description: 'Le chemin relatif à supprimer.'),
+        }, requiredProperties: ['path']),
+      ),
+      FunctionDeclaration(
+        'wiki_rename_file',
+        'Renommer ou déplacer un fichier/dossier.',
+        Schema.object(properties: {
+          'oldPath': Schema.string(description: 'L''ancien chemin relatif.'),
+          'newPath': Schema.string(description: 'Le nouveau chemin relatif.'),
+        }, requiredProperties: ['oldPath', 'newPath']),
+      ),
+    ];
   }
 }

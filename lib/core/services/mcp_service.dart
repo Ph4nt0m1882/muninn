@@ -51,6 +51,18 @@ class McpClient {
         AppLogger.d("MCP $name: $err");
       });
 
+      _process!.exitCode.then((code) {
+        AppLogger.w("MCP $name s'est arrêté avec le code $code");
+        for (var completer in _pendingRequests.values) {
+          if (!completer.isCompleted) {
+            completer.completeError("Le processus MCP s'est arrêté inopinément (code $code).");
+          }
+        }
+        _pendingRequests.clear();
+        isInitialized = false;
+        _process = null;
+      });
+
       // 1. Initialisation MCP
       await _sendRequest('initialize', {
         'protocolVersion': '2024-11-05',
