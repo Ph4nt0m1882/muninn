@@ -296,8 +296,15 @@ class AIService {
               final absolutePath = p.join(args['isGlobal'] == true ? (await getApplicationSupportDirectory()).path : wikiRoot, args['filePath'] as String);
               final file = File(absolutePath);
               if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-              file.writeAsStringSync(args['content'] as String);
-              if (args['isGlobal'] != true) EditorManager.instance.openFile(absolutePath);
+              
+              final isOpened = EditorManager.instance.openedFiles.any((f) => f.path == absolutePath);
+              if (isOpened) {
+                EditorManager.instance.updateFileContent(absolutePath, args['content'] as String);
+                if (args['isGlobal'] != true) EditorManager.instance.openFile(absolutePath);
+              } else {
+                file.writeAsStringSync(args['content'] as String);
+                if (args['isGlobal'] != true) EditorManager.instance.openFile(absolutePath);
+              }
               executedTools.add("Modifier ${args['filePath']}");
             }
             else if (cmdId == 'wiki_read_file') {
@@ -317,11 +324,60 @@ class AIService {
               final absolutePath = p.join(wikiRoot, filePath);
               final file = File(absolutePath);
               if (file.existsSync()) {
-                file.writeAsStringSync("\n" + content, mode: FileMode.append);
+                final opened = EditorManager.instance.openedFiles.where((f) => f.path == absolutePath).firstOrNull;
+                if (opened != null) {
+                  EditorManager.instance.updateFileContent(absolutePath, opened.content + "\n" + content);
+                } else {
+                  file.writeAsStringSync("\n" + content, mode: FileMode.append);
+                }
                 EditorManager.instance.openFile(absolutePath);
                 executedTools.add("Ajouter à $filePath");
               } else {
                 functionResponses.add(FunctionResponse(cmdId, {'error': 'Fichier introuvable'}));
+              }
+            }
+            else if (cmdId == 'wiki_insert_in_file') {
+              final String filePath = args['filePath'] as String;
+              final String contentToInsert = args['content'] as String;
+              final String position = args['position'] as String;
+              final num? lineNumberRaw = args['lineNumber'] as num?;
+              final int? lineNumber = lineNumberRaw?.toInt();
+              
+              final absolutePath = p.join(wikiRoot, filePath);
+              final file = File(absolutePath);
+              
+              if (!file.existsSync()) {
+                functionResponses.add(FunctionResponse(cmdId, {'error': 'Fichier introuvable'}));
+              } else {
+                final opened = EditorManager.instance.openedFiles.where((f) => f.path == absolutePath).firstOrNull;
+                String currentContent = opened != null ? opened.content : file.readAsStringSync();
+                
+                String newContent;
+                if (position == 'start') {
+                  newContent = contentToInsert + "\n\n" + currentContent;
+                } else if (position == 'end') {
+                  newContent = currentContent + "\n\n" + contentToInsert;
+                } else if (position == 'line' && lineNumber != null) {
+                  final lines = currentContent.split('\n');
+                  if (lineNumber <= 1) {
+                    newContent = contentToInsert + "\n" + currentContent;
+                  } else if (lineNumber > lines.length) {
+                    newContent = currentContent + "\n" + contentToInsert;
+                  } else {
+                    lines.insert(lineNumber - 1, contentToInsert);
+                    newContent = lines.join('\n');
+                  }
+                } else {
+                  newContent = currentContent + "\n" + contentToInsert;
+                }
+                
+                if (opened != null) {
+                  EditorManager.instance.updateFileContent(absolutePath, newContent);
+                } else {
+                  file.writeAsStringSync(newContent);
+                }
+                EditorManager.instance.openFile(absolutePath);
+                executedTools.add("Insérer dans $filePath");
               }
             }
             else if (cmdId == 'wiki_list_directory') {
@@ -533,6 +589,16 @@ class AIService {
           'filePath': Schema.string(description: 'Le chemin relatif du fichier à modifier.'),
           'content': Schema.string(description: 'Le contenu à rajouter.'),
         }, requiredProperties: ['filePath', 'content']),
+      ),
+      FunctionDeclaration(
+        'wiki_insert_in_file',
+        'Insérer du texte dans un fichier à un endroit précis (au début, à la fin, ou à une ligne donnée).',
+        Schema.object(properties: {
+          'filePath': Schema.string(description: 'Le chemin relatif du fichier.'),
+          'content': Schema.string(description: 'Le texte à insérer.'),
+          'position': Schema.string(description: 'L''endroit où insérer ("start", "end", "line").'),
+          'lineNumber': Schema.integer(description: 'Numéro de ligne (1-indexé) si position est "line". Optionnel.'),
+        }, requiredProperties: ['filePath', 'content', 'position']),
       ),
       FunctionDeclaration(
         'wiki_list_directory',
