@@ -2,11 +2,11 @@
 
 ## 🤖 Intelligence Artificielle (RAG & Agent)
 - [x] **Historique des Conversations** : Implémenter la sauvegarde et l'interface pour parcourir, reprendre et gérer les anciennes sessions de chat.
-- [ ] **Capacités Agentiques (Tool Calling)** : Donner à l'IA la capacité d'agir sur l'application via des outils :
+- [x] **Capacités Agentiques (Tool Calling)** : Donner à l'IA la capacité d'agir sur l'application via des outils :
   - Ouvrir une page du wiki spécifique sur demande.
   - Modifier le thème de l'application.
   - Modifier des paramètres internes si l'utilisateur le demande.
-- [ ] **Nouvelles Commandes Éditeur (Slash Commands)** :
+- [x] **Nouvelles Commandes Éditeur (Slash Commands)** :
   - `/create_rules` : Générer ou appliquer des règles personnalisées.
   - `/create_commandes` : Aide à la création de raccourcis ou de macros.
   - `/create_mcp` : Configuration de connexions externes (Model Context Protocol).

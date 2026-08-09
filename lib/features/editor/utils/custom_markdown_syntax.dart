@@ -89,3 +89,68 @@ class ContextLinkSyntax extends InlineSyntax {
   }
 }
 
+class LatexDisplaySyntax extends InlineSyntax {
+  LatexDisplaySyntax() : super('');
+
+  @override
+  RegExp get pattern => RegExp(r'\$\$(.*?)\$\$', multiLine: true, dotAll: true);
+
+  @override
+  bool onMatch(InlineParser parser, Match match) {
+    final el = Element.text('tex', match[1] ?? '');
+    el.attributes['display'] = 'block';
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class LatexInlineSyntax extends InlineSyntax {
+  LatexInlineSyntax() : super('');
+
+  @override
+  RegExp get pattern => RegExp(r'(?<!\\)\$(.*?)(?<!\\)\$', multiLine: true, dotAll: true);
+
+  @override
+  bool onMatch(InlineParser parser, Match match) {
+    final el = Element.text('tex', match[1] ?? '');
+    el.attributes['display'] = 'inline';
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class MunninCheckboxSyntax extends InlineSyntax {
+  static int checkboxId = 0;
+
+  MunninCheckboxSyntax() : super('');
+
+  @override
+  RegExp get pattern => RegExp(r'^\[([ xXvV\*])\]\s+');
+
+  @override
+  bool onMatch(InlineParser parser, Match match) {
+    final state = (match[1] ?? '').toLowerCase();
+    final el = Element.empty('munnin-checkbox');
+    el.attributes['id'] = '${checkboxId++}';
+    el.attributes['state'] = state;
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class FootnoteDefSyntax extends InlineSyntax {
+  FootnoteDefSyntax() : super('');
+
+  @override
+  RegExp get pattern => RegExp(r'^\[\^([^\]]+)\]:\s*(.+)$', multiLine: true);
+
+  @override
+  bool onMatch(InlineParser parser, Match match) {
+    final id = match[1] ?? '';
+    final content = match[2] ?? '';
+    final el = Element.text('footnote-def', content);
+    el.attributes['id'] = id;
+    parser.addNode(el);
+    return true;
+  }
+}

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:munnin/core/utils/logger.dart';
@@ -32,11 +33,19 @@ class FileExplorerState extends State<FileExplorer> {
 
   // Liste "à plat" des entités visibles (pour ListView performant)
   List<ExplorerNode> _visibleNodes = [];
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     loadTree();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => loadTree());
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override

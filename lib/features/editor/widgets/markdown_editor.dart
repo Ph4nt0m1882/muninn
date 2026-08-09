@@ -216,7 +216,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
       // Wrapping characters around selection
       if (event.character != null) {
         final char = event.character!;
-        final wrapChars = {'*': '*', '_': '_', '"': '"', '\'': '\'', '(': ')', '[': ']', '{': '}'};
+        final wrapChars = {'*': '*', '_': '_', '"': '"', '\'': '\'', '(': ')', '[': ']', '{': '}', r'$': r'$'};
         
         if (wrapChars.containsKey(char)) {
           final selection = _textController.selection;
@@ -461,12 +461,18 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                             final memoryContent =
                                 manager.activeFile?.content ?? '';
 
+                            // On masque les blocs de code pour ne pas fausser l'index des ID
+                            final maskedContent = memoryContent.replaceAllMapped(
+                              RegExp(r'```.*?```', multiLine: true, dotAll: true),
+                              (m) => ' ' * m.group(0)!.length,
+                            );
+
                             final regExp = RegExp(
                               r'^(\s*-\s+)\[([ xXvV\*])\]',
                               multiLine: true,
                             );
                             final matches = regExp
-                                .allMatches(memoryContent)
+                                .allMatches(maskedContent)
                                 .toList();
                             if (id >= 0 && id < matches.length) {
                               final memMatch = matches[id];

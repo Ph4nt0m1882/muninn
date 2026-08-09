@@ -1,0 +1,9 @@
+mcp<2
+ddgs
+beautifulsoup4
+requests
+wikipedia-api
+arxiv
+youtube-transcript-api
+sympy
+pytz

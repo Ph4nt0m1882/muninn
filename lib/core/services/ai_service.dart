@@ -4,6 +4,11 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:munnin/src/rust/api/settings.dart';
 import 'package:munnin/src/rust/api/rag.dart';
 import 'package:munnin/core/utils/logger.dart';
+import 'package:munnin/core/services/mcp_service.dart';
+import 'package:munnin/features/editor/services/editor_manager.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class ChatResult {
@@ -13,8 +18,23 @@ class ChatResult {
   ChatResult(this.text, this.sources);
 }
 
+String getGlobalMunninDir() {
+  if (Platform.isWindows) {
+    return p.join(Platform.environment['APPDATA'] ?? '', 'Munnin');
+  } else if (Platform.isLinux) {
+    return p.join(Platform.environment['HOME'] ?? '', '.config', 'munnin');
+  } else if (Platform.isMacOS) {
+    return p.join(Platform.environment['HOME'] ?? '', 'Library', 'Application Support', 'Munnin');
+  }
+  return '';
+}
+
 class AIService {
   static final AIService instance = AIService._internal();
+  
+  // Modèle d'IA actuellement sélectionné
+  static final ValueNotifier<String> selectedModelNotifier = ValueNotifier<String>('gemini-3.5-flash-lite');
+
   GenerativeModel? _model;
   
   AIService._internal();
@@ -115,6 +135,16 @@ class AIService {
           finalPrompt += '--- DEBUT FICHIER CONTEXTE : $actionPrefix/$filename ---\n$content\n--- FIN FICHIER CONTEXTE ---\n\n';
         }
       }
+      
+      // Injecter les informations sur l'OS pour aider l'IA avec les commandes système
+      final osName = Platform.operatingSystem;
+      final osVersion = Platform.operatingSystemVersion;
+      finalPrompt += '--- INFORMATIONS SYSTEME ---\n';
+      finalPrompt += 'Vous êtes exécuté sur une machine locale. Voici les informations du système cible :\n';
+      finalPrompt += 'Système d\'exploitation : $osName\n';
+      finalPrompt += 'Version : $osVersion\n';
+      finalPrompt += 'Adaptez vos commandes système (ex: execute_command) à cet OS (ex: dir vs ls, chemins de fichiers, etc.).\n';
+      finalPrompt += '--- FIN INFORMATIONS SYSTEME ---\n\n';
 
       if (finalPrompt.trim().isEmpty) return null;
       return Content.system(finalPrompt);
@@ -165,20 +195,235 @@ class AIService {
       AppLogger.w("Erreur lors de la recherche RAG: $e");
     }
 
-    // On crée une instance locale du modèle pour lui passer la bonne systemInstruction (dépendante de l'action)
+    // 3.5 Initialiser et ajouter les outils MCP
+    await McpService.instance.initialize(wikiRoot);
+    List<FunctionDeclaration> functionDeclarations = [];
+    final mcpTools = await McpService.instance.getAndRegisterTools();
+    
+    String finalSystemInstruction = "";
+    if (systemInstruction != null && systemInstruction.parts.isNotEmpty) {
+      final part = systemInstruction.parts.first;
+      if (part is TextPart) {
+        finalSystemInstruction = part.text;
+      }
+    }
+
+    if (mcpTools.isNotEmpty) {
+      finalSystemInstruction += "\n\nTu as accès aux outils externes (fonctions) suivants que tu peux appeler automatiquement si besoin :\n";
+    }
+
+    for (var mcpTool in mcpTools) {
+      functionDeclarations.add(FunctionDeclaration(
+        mcpTool.name,
+        mcpTool.description,
+        _convertJsonSchema(mcpTool.inputSchema),
+      ));
+      finalSystemInstruction += "- ${mcpTool.name}: ${mcpTool.description}\n";
+    }
+
+    if (actionPrefix == '06_create-mcp') {
+      functionDeclarations.add(FunctionDeclaration(
+        'create_mcp',
+        'Crée un serveur MCP en Python',
+        Schema.object(properties: {
+          'name': Schema.string(description: 'Nom du serveur (minuscule sans espace)'),
+          'server_content': Schema.string(description: 'Code Python complet du serveur (FastMCP)'),
+          'requirements_content': Schema.string(description: 'Contenu du fichier requirements.txt'),
+          'isGlobal': Schema.boolean(description: 'True si disponible globalement, false sinon'),
+        }, requiredProperties: ['name', 'server_content', 'requirements_content']),
+      ));
+    } else if (actionPrefix == '05_create-commandes') {
+      functionDeclarations.add(FunctionDeclaration(
+        'create_command',
+        'Crée une commande personnalisée',
+        Schema.object(properties: {
+          'name': Schema.string(description: 'Nom de la commande'),
+          'content': Schema.string(description: 'Contenu du prompt'),
+          'isGlobal': Schema.boolean(description: 'True si disponible globalement, false sinon'),
+        }, requiredProperties: ['name', 'content']),
+      ));
+    } else if (actionPrefix == '04_create-rules') {
+      functionDeclarations.add(FunctionDeclaration(
+        'create_rule',
+        'Crée une règle de contexte global',
+        Schema.object(properties: {
+          'name': Schema.string(description: 'Nom de la règle'),
+          'content': Schema.string(description: 'Contenu de la règle'),
+          'isGlobal': Schema.boolean(description: 'True si disponible globalement, false sinon'),
+        }, requiredProperties: ['name', 'content']),
+      ));
+    }
+
+    final tool = Tool(functionDeclarations: functionDeclarations);
+
+    // On crée une instance locale du modèle avec les tools
     final chatModel = GenerativeModel(
-      model: 'gemini-3.5-flash-lite',
+      model: AIService.selectedModelNotifier.value,
       apiKey: apiKey,
-      systemInstruction: systemInstruction,
+      systemInstruction: finalSystemInstruction.isNotEmpty ? Content.system(finalSystemInstruction) : null,
+      tools: functionDeclarations.isNotEmpty ? [tool] : null,
     );
 
     try {
       final chatSession = chatModel.startChat(history: history);
-      final response = await chatSession.sendMessage(Content.text(message));
+      var response = await chatSession.sendMessage(Content.text(message));
+      
+      // Gérer les appels d'outils
+      if (response.functionCalls.isNotEmpty) {
+        String finalReplyText = response.text ?? "";
+        List<String> executedTools = [];
+        List<FunctionResponse> functionResponses = [];
+
+        for (var functionCall in response.functionCalls) {
+          final cmdId = functionCall.name;
+          final args = functionCall.args;
+          
+          AppLogger.i("L'IA demande l'exécution de l'outil MCP : $cmdId avec args : $args");
+          
+          try {
+            if (cmdId == 'wiki_open_file') {
+              final absolutePath = p.join(wikiRoot, args['filePath'] as String);
+              EditorManager.instance.openFile(absolutePath);
+              executedTools.add("Ouvrir ${args['filePath']}");
+            } 
+            else if (cmdId == 'wiki_write_file') {
+              final absolutePath = p.join(args['isGlobal'] == true ? (await getApplicationSupportDirectory()).path : wikiRoot, args['filePath'] as String);
+              final file = File(absolutePath);
+              if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+              file.writeAsStringSync(args['content'] as String);
+              if (args['isGlobal'] != true) EditorManager.instance.openFile(absolutePath);
+              executedTools.add("Modifier ${args['filePath']}");
+            }
+            else if (cmdId == 'create_rule') {
+              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMunninDir() : wikiRoot, '.munnin', 'rules', '${args['name']}.md');
+              final file = File(absolutePath);
+              if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+              file.writeAsStringSync(args['content'] as String);
+              executedTools.add("Créer Règle ${args['name']}");
+            }
+            else if (cmdId == 'create_command') {
+              final absolutePath = p.join(args['isGlobal'] == true ? getGlobalMunninDir() : wikiRoot, '.munnin', 'commands', args['name'] as String);
+              final dir = Directory(absolutePath);
+              if (!dir.existsSync()) dir.createSync(recursive: true);
+              File(p.join(absolutePath, 'prompt.md')).writeAsStringSync(args['content'] as String);
+              File(p.join(absolutePath, 'manifest.txt')).writeAsStringSync('name: ${args['name']}');
+              executedTools.add("Créer Commande ${args['name']}");
+              functionResponses.add(FunctionResponse(cmdId, {'result': 'Commande créée avec succès.'}));
+            }
+            else if (cmdId == 'create_mcp') {
+              final String name = args['name'] as String;
+              final String serverContent = args['server_content'] as String;
+              final String requirementsContent = args['requirements_content'] as String;
+              final bool isGlobal = args['isGlobal'] == true;
+              
+              final absolutePath = p.join(isGlobal ? getGlobalMunninDir() : wikiRoot, '.munnin', 'mcp', name);
+              final dir = Directory(absolutePath);
+              if (!dir.existsSync()) dir.createSync(recursive: true);
+              
+              File(p.join(absolutePath, 'server.py')).writeAsStringSync(serverContent);
+              File(p.join(absolutePath, 'requirements.txt')).writeAsStringSync(requirementsContent);
+              
+              AppLogger.i("Création du venv uv pour $name...");
+              final venvRes = await Process.run('uv', ['venv'], workingDirectory: absolutePath);
+              if (venvRes.exitCode != 0) AppLogger.w("uv venv erreur: ${venvRes.stderr}");
+              
+              AppLogger.i("Installation des dépendances pour $name...");
+              final pipRes = await Process.run('uv', ['pip', 'install', '-r', 'requirements.txt'], workingDirectory: absolutePath);
+              if (pipRes.exitCode != 0) AppLogger.w("uv pip install erreur: ${pipRes.stderr}");
+              
+              AppLogger.i("Redémarrage des serveurs MCP pour détecter le nouveau serveur $name...");
+              McpService.instance.stopAll();
+              await McpService.instance.initialize(wikiRoot);
+              
+              executedTools.add("Créer MCP $name");
+              functionResponses.add(FunctionResponse(cmdId, {'result': 'Serveur MCP créé et initialisé avec succès ! (uv venv + pip install)'}));
+            }
+            else {
+              // --- OUTILS MCP ---
+              final result = await McpService.instance.executeTool(cmdId, args);
+              if (result != null) {
+                functionResponses.add(FunctionResponse(cmdId, {'result': result}));
+                executedTools.add("MCP: $cmdId");
+              } else {
+                functionResponses.add(FunctionResponse(cmdId, {'error': 'Outil non reconnu'}));
+                executedTools.add("Inconnu: $cmdId");
+              }
+            }
+          } catch (e) {
+            functionResponses.add(FunctionResponse(cmdId, {'error': e.toString()}));
+            executedTools.add("Erreur: $cmdId");
+          }
+        }
+        
+        if (functionResponses.isNotEmpty) {
+          try {
+            response = await chatSession.sendMessage(Content('user', functionResponses));
+            finalReplyText = response.text ?? finalReplyText;
+          } catch (e) {
+            if (e.toString().contains('thought_signature') || e.toString().contains('Function call')) {
+              AppLogger.w("Fallback thought_signature déclenché pour contourner le bug du SDK Dart");
+              String toolResultsText = "Voici les résultats des outils appelés (utilise-les pour répondre) :\n";
+              for (var fr in functionResponses) {
+                toolResultsText += "Outil ${fr.name} : ${jsonEncode(fr.response)}\n";
+              }
+              final fallbackModel = GenerativeModel(
+                model: AIService.selectedModelNotifier.value,
+                apiKey: apiKey,
+                systemInstruction: finalSystemInstruction.isNotEmpty ? Content.system(finalSystemInstruction) : null,
+              );
+              final fallbackSession = fallbackModel.startChat(history: history);
+              response = await fallbackSession.sendMessage(Content.text("$message\n\n$toolResultsText"));
+              finalReplyText = response.text ?? finalReplyText;
+            } else {
+              rethrow;
+            }
+          }
+        }
+        
+        return ChatResult(finalReplyText.isNotEmpty ? finalReplyText : "Action effectuée.", sources);
+      }
+      
       return ChatResult(response.text ?? "Aucune réponse générée.", sources);
     } catch (e) {
       AppLogger.e("Erreur de l'API Gemini (Chat) : $e");
       rethrow;
     }
+  }
+
+  Schema _convertJsonSchema(Map<String, dynamic> schema) {
+    final typeStr = schema['type'] as String?;
+    SchemaType type = SchemaType.string;
+    if (typeStr == 'object') type = SchemaType.object;
+    else if (typeStr == 'array') type = SchemaType.array;
+    else if (typeStr == 'integer') type = SchemaType.integer;
+    else if (typeStr == 'number') type = SchemaType.number;
+    else if (typeStr == 'boolean') type = SchemaType.boolean;
+
+    Map<String, Schema>? properties;
+    if (schema.containsKey('properties')) {
+      properties = {};
+      final props = schema['properties'] as Map<String, dynamic>;
+      props.forEach((key, value) {
+        properties![key] = _convertJsonSchema(value as Map<String, dynamic>);
+      });
+    }
+
+    List<String>? requiredProperties;
+    if (schema.containsKey('required')) {
+      requiredProperties = (schema['required'] as List<dynamic>).cast<String>();
+    }
+
+    Schema? items;
+    if (schema.containsKey('items')) {
+      items = _convertJsonSchema(schema['items'] as Map<String, dynamic>);
+    }
+
+    return Schema(
+      type,
+      description: schema['description'] as String?,
+      properties: properties,
+      requiredProperties: requiredProperties,
+      items: items,
+    );
   }
 }

@@ -10,6 +10,7 @@ import 'package:munnin/features/editor/utils/color_parser.dart';
 import 'package:munnin/features/editor/widgets/flying_crow_animation.dart';
 import 'package:munnin/features/editor/utils/icon_parser.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:munnin/features/editor/services/link_preview_manager.dart';
 import 'package:munnin/core/theme/theme_manager.dart';
 import 'package:munnin/core/theme/crow_style.dart';
@@ -39,34 +40,18 @@ class MarkdownRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentStyle = theme.extension<CrowStyleExtension>()!.style;
-
-    // 0. Pré-traitement pour intercepter les cases à cocher personnalisées
-    int checkboxId = 0;
-    final String preprocessedContent = content.trim().replaceAllMapped(
-      RegExp(r'^(\s*-\s+)\[([ xXvV\*])\]', multiLine: true),
-      (match) {
-        final prefix = match.group(1)!;
-        final state = match.group(2)!.toLowerCase();
-        return '$prefix<munnin-checkbox id="${checkboxId++}" state="$state"></munnin-checkbox>';
-      },
-    );
-
+    
+    MunninCheckboxSyntax.checkboxId = 0;
+    
     // 0.5 Pré-traitement pour préserver l'attribut {edit} des blocs de code
-    final String preprocessedContent2 = preprocessedContent.replaceAllMapped(
+    final String preprocessedContent = content.replaceAllMapped(
       RegExp(r'^```([a-zA-Z0-9_\-]+)[ \t]+\{edit\}\s*$', multiLine: true),
       (match) => '```${match.group(1)}-edit',
     );
 
-    // 0.6 Pré-traitement pour les définitions de notes de bas de page [^1]: def
-    final String preprocessedContent3 = preprocessedContent2.replaceAllMapped(
-      RegExp(r'^\[\^([^\]]+)\]:\s*(.+)$', multiLine: true),
-      (match) =>
-          '<footnote-def id="${match.group(1)}">${match.group(2)}</footnote-def>',
-    );
-
     // 1. Conversion Markdown -> HTML
     final String htmlContent = md.markdownToHtml(
-      preprocessedContent3,
+      preprocessedContent,
       extensionSet: md
           .ExtensionSet
           .gitHubFlavored, // Support des tables, sans les alertes web pour utiliser notre TagExtension
@@ -75,6 +60,10 @@ class MarkdownRenderer extends StatelessWidget {
         WikiLinkSyntax(),
         FootnoteRefSyntax(),
         ContextLinkSyntax(), // Syntaxe d'injection de contexte @[]()
+        LatexDisplaySyntax(), // $$...$$
+        LatexInlineSyntax(), // $...$
+        MunninCheckboxSyntax(),
+        FootnoteDefSyntax(),
       ],
     );
 
@@ -238,6 +227,28 @@ class MarkdownRenderer extends StatelessWidget {
                 ],
               ),
             ),
+          );
+        },
+      ),
+      TagExtension(
+        tagsToExtend: {"tex"},
+        builder: (extensionContext) {
+          final display = extensionContext.element?.attributes['display'] == 'block';
+          // Récupérer le texte brut car innerHtml peut encoder les chevrons < > en &lt;
+          String texStr = extensionContext.element?.text ?? '';
+          
+          return Math.tex(
+            texStr,
+            mathStyle: display ? MathStyle.display : MathStyle.text,
+            textStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+            onErrorFallback: (e) {
+              return Text(
+                'Erreur LaTeX: ${e.message}',
+                style: const TextStyle(color: Colors.red),
+              );
+            },
           );
         },
       ),

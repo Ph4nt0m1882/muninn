@@ -212,6 +212,20 @@ Voici une affirmation très intéressante.[^1]
 [^1]: Et voici la source ou l'explication détaillée en bas de page.
 ```
 
+### 3.8. Formules Mathématiques (LaTeX)
+Munnin intègre un parseur puissant pour afficher de belles formules mathématiques en utilisant la syntaxe LaTeX classique.
+
+```markdown
+- Formule en ligne : La limite est $\lim_{x \to 0} \frac{\sin(x)}{x} = 1$ !
+- Formule en bloc : 
+$$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+```
+
+**Rendu :**
+- Formule en ligne : La limite est $\lim_{x \to 0} \frac{\sin(x)}{x} = 1$ !
+- Formule en bloc : 
+$$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+
 ---
 
 ## 4. Sélecteur d'Icônes (Icon Picker)

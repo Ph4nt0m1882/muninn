@@ -16,6 +16,7 @@ import 'package:munnin/src/rust/api/chat.dart' as rust_chat;
 import 'package:munnin/features/settings/settings.dart';
 import 'package:munnin/features/settings/widgets/api_key_dialog.dart';
 import 'package:munnin/features/settings/widgets/app_settings_dialog.dart';
+import 'package:munnin/features/settings/widgets/ai_settings_dialog.dart';
 import 'package:munnin/features/settings/services/settings_manager.dart';
 import 'package:munnin/core/utils/logger.dart';
 import 'package:munnin/core/modules/module_registry.dart';
@@ -55,6 +56,8 @@ Future<void> main() async {
 }
 
 class MunninApp extends StatefulWidget {
+  static final ValueNotifier<int> themeNotifier = ValueNotifier(0);
+
   const MunninApp({super.key});
 
   @override
@@ -75,10 +78,18 @@ class _MunninAppState extends State<MunninApp> {
     _loadInitialSettings();
     _registerCommands();
     HardwareKeyboard.instance.addHandler(_handleGlobalKeys);
+    MunninApp.themeNotifier.addListener(_onThemeNotifierChanged);
+  }
+
+  void _onThemeNotifierChanged() {
+    setState(() {
+      _themeIndex = MunninApp.themeNotifier.value;
+    });
   }
 
   @override
   void dispose() {
+    MunninApp.themeNotifier.removeListener(_onThemeNotifierChanged);
     HardwareKeyboard.instance.removeHandler(_handleGlobalKeys);
     super.dispose();
   }
@@ -138,13 +149,13 @@ class _MunninAppState extends State<MunninApp> {
     cmdManager.register(
       AppCommand(
         id: 'app.ai_settings',
-        title: 'Configuration IA (Clé API)',
-        description: 'Configurer Gemini et les fonctionnalités intelligentes',
+        title: 'Configuration IA',
+        description: 'Configurer l\'IA, les règles et les commandes',
         icon: Icons.smart_toy,
         execute: () {
           final context = navigatorKey.currentContext;
           if (context != null) {
-            ApiKeyDialog.show(context);
+            AiSettingsDialog.show(context);
           }
         },
       ),
@@ -671,6 +682,7 @@ class _MunninAppState extends State<MunninApp> {
 
   void _loadInitialSettings() {
     final settings = loadSettings();
+    MunninApp.themeNotifier.value = settings.themeIndex;
     setState(() {
       _themeIndex = settings.themeIndex;
       // Ne garde que les dossiers qui existent encore sur le disque
@@ -684,9 +696,7 @@ class _MunninAppState extends State<MunninApp> {
   }
 
   void _setTheme(int index) {
-    setState(() {
-      _themeIndex = index;
-    });
+    MunninApp.themeNotifier.value = index;
     saveTheme(index: index);
   }
 

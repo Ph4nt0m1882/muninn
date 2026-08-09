@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:munnin/features/ai_chat/utils/chat_text_controller.dart';
 import 'package:munnin/features/ai_chat/widgets/autocomplete_popup.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChatPanel extends StatefulWidget {
   final String wikiRoot;
@@ -33,6 +34,7 @@ class _ChatPanelState extends State<ChatPanel> {
   List<String> _availableCommands = [];
   List<String> _availablePages = [];
   List<String> _availableImages = [];
+  Map<String, String> _commandToFolder = {};
 
   @override
   void initState() {
@@ -54,7 +56,9 @@ class _ChatPanelState extends State<ChatPanel> {
             if (parts.length > 3) {
               final folder = parts[2];
               if (RegExp(r'^\d+_').hasMatch(folder)) {
-                commands.add(folder.replaceFirst(RegExp(r'^\d+_'), ''));
+                final cmdName = folder.replaceFirst(RegExp(r'^\d+_'), '');
+                commands.add(cmdName);
+                _commandToFolder[cmdName] = folder;
               }
             }
           }
@@ -62,6 +66,43 @@ class _ChatPanelState extends State<ChatPanel> {
       } catch (e) {
         debugPrint("Erreur chargement manifest: $e");
       }
+      
+      // Load custom commands (local)
+      try {
+        final localCmdsDir = Directory(p.join(widget.wikiRoot, '.munnin', 'commands'));
+        if (await localCmdsDir.exists()) {
+          final dirs = await localCmdsDir.list().toList();
+          for (var dir in dirs) {
+            if (await FileSystemEntity.isDirectory(dir.path)) {
+              commands.add(p.basename(dir.path));
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Erreur chargement local commands: $e");
+      }
+      
+      // Load custom commands (global)
+      try {
+        final globalCmdsDir = Directory(p.join(getGlobalMunninDir(), '.munnin', 'commands'));
+        debugPrint("Chargement global commands depuis: ${globalCmdsDir.path}");
+        if (await globalCmdsDir.exists()) {
+          final dirs = await globalCmdsDir.list().toList();
+          debugPrint("Trouvé ${dirs.length} éléments globaux");
+          for (var dir in dirs) {
+            bool isDir = await FileSystemEntity.isDirectory(dir.path);
+            debugPrint("Élément: ${dir.path}, isDirectory: $isDir");
+            if (isDir) {
+              commands.add(p.basename(dir.path));
+            }
+          }
+        } else {
+          debugPrint("Dossier global non trouvé");
+        }
+      } catch (e) {
+        debugPrint("Erreur chargement global commands: $e");
+      }
+      
       _availableCommands = commands.toList()..sort();
 
       final dir = Directory(widget.wikiRoot);
@@ -325,8 +366,21 @@ class _ChatPanelState extends State<ChatPanel> {
       
       // On retire le dernier message car on va l'envoyer comme nouveau message dans la méthode chat()
       history.removeLast();
+      
+      String? actionPrefix;
+      if (content.startsWith('/')) {
+        final parts = content.split(RegExp(r'\s+'));
+        if (parts.isNotEmpty) {
+          final commandName = parts.first.substring(1);
+          if (_commandToFolder.containsKey(commandName)) {
+            actionPrefix = _commandToFolder[commandName];
+          } else if (_availableCommands.contains(commandName)) {
+            actionPrefix = commandName;
+          }
+        }
+      }
 
-      final result = await AIService.instance.chat(content, history, wikiRoot: widget.wikiRoot);
+      final result = await AIService.instance.chat(content, history, actionPrefix: actionPrefix, wikiRoot: widget.wikiRoot);
       
       final aiMessage = rust_chat.ChatMessage(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -386,17 +440,17 @@ class _ChatPanelState extends State<ChatPanel> {
             decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: theme.dividerColor)),
             ),
-            child: Row(
-              children: [
-                Icon(Icons.auto_awesome, color: Colors.purple[300]),
-                const SizedBox(width: 8),
-                Text(
-                  'Assistant IA',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: Colors.purple[300]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Assistant IA',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Spacer(),
+                  const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.history),
                   tooltip: 'Historique des conversations',
@@ -539,9 +593,46 @@ class _ChatPanelState extends State<ChatPanel> {
         color: theme.colorScheme.surface,
         border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(
+          ValueListenableBuilder<String>(
+            valueListenable: AIService.selectedModelNotifier,
+            builder: (context, currentModel, child) {
+              return Container(
+                height: 28,
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: currentModel,
+                    icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                    dropdownColor: theme.colorScheme.surfaceContainerHighest,
+                    isDense: true,
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        AIService.selectedModelNotifier.value = newValue;
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(value: 'gemini-3.5-flash-lite', child: Text('Gemini 3.5 Flash-Lite (Fast)')),
+                      DropdownMenuItem(value: 'gemini-3.6-flash', child: Text('Gemini 3.6 Flash (Fast)')),
+                      DropdownMenuItem(value: 'gemini-3.1-pro-preview', child: Text('Gemini 3.1 Pro (High)')),
+                      DropdownMenuItem(value: 'deep-research-max-preview-04-2026', child: Text('Deep Research Max')),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          Row(
+            children: [
+              Expanded(
             child: TextField(
               controller: _textController,
               decoration: InputDecoration(
@@ -567,6 +658,8 @@ class _ChatPanelState extends State<ChatPanel> {
               onPressed: () => _sendMessage(_textController.text),
             ),
           ),
+        ],
+      ),
         ],
       ),
     );
